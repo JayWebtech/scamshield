@@ -1,0 +1,355 @@
+Column(
+            children: [Container(
+            height:290,
+            width: MediaQuery.of(context).size.width,
+            padding: const EdgeInsets.only(top: 100, left: 20, right: 20, bottom: 30),
+            decoration: const BoxDecoration(
+              
+              gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [
+                Color(0xFF1b1464),
+                Color(0xFF020024),
+              ],
+            )
+                //color: Color(0xFF1b1464),
+            ),
+       
+           
+            child: Column(
+                children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('Hello $name,',
+                    style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 28,
+                        color: Colors.white,
+                        
+                      ),
+                    ),
+                  ),
+                  ),
+                  Align(
+                      alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Do you have any scam report?',
+                    style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w300,
+                          fontSize: 18),
+                    ),
+                  ),
+                  ),
+                  const SizedBox(
+                          height: 20,
+                    ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(
+                          Icons.radio_button_on,
+                        ),
+                      style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0)),
+                              backgroundColor: const Color.fromARGB(255, 56, 39, 238),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 18,
+                                  vertical: 10)
+                              ),
+                          onPressed: () {
+
+                          }, label:Text(
+                            'Report',
+                            style: GoogleFonts.poppins(
+                            textStyle: const TextStyle(
+                              fontSize: 18,
+                              color: Colors.white,
+                            ),
+                          ),
+                      ),
+                  )
+                  ),
+                ],
+            ),
+           
+            ),
+            
+            Transform.translate(
+                    offset: const Offset(0, -25),
+                    child: Container(
+                     // height: MediaQuery.of(context).size.height-kBottomNavigationBarHeight,
+                      padding: const EdgeInsets.only(top: 15, left: 20, right: 20, bottom: 20),
+       // margin: const EdgeInsets.only(top: 25, left: 25, right: 25),
+        //padding: const EdgeInsets.all(10),
+        decoration: const BoxDecoration(color: Colors.white,borderRadius: BorderRadius.only(
+                topRight: Radius.circular(30),
+                bottomRight: Radius.circular(0),
+                topLeft: Radius.circular(30),
+                bottomLeft: Radius.circular(0.0)
+              ),
+              ),
+              child: SizedBox(
+               //height : MediaQuery.of(context).size.height,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+          child: Column(
+            children: [
+              Row(
+                
+                children: [
+                
+                  Flexible(
+                    flex: 1,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(10),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color.fromARGB(15, 114, 114, 114),
+                          blurRadius: 10.0,
+                          spreadRadius: 2.0,
+                          offset: Offset(0.0, 0.0),
+                        )
+                      ],
+                    ),
+                      child: TextField(
+                      cursorColor: Colors.black,
+                      decoration: InputDecoration(
+                        fillColor: Colors.white,
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        hintText: 'Verify number or email',
+                        hintStyle: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14
+                        ),
+                        prefixIcon: Container(
+                          padding: const EdgeInsets.all(15),
+                          width: 18,
+                          child: const Icon(Icons.search),
+                        ),
+                        
+                      ),
+                    ),
+                  ),
+                  ),
+                  Container(
+                    
+                    margin: const EdgeInsets.only (left: 10),
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      color: Color.fromARGB(255, 56, 39, 238),
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                        boxShadow: [
+                        BoxShadow(
+                          color: Color.fromARGB(15, 102, 101, 101),
+                          blurRadius: 15.0,
+                          spreadRadius: 2.0,
+                          offset: Offset(0.0, 0.0),
+                        )
+                      ],
+                    ),
+                    child: const Icon(Icons.search, color: Colors.white,),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              Align(
+                    alignment: Alignment.topLeft,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Recent Reports',
+                    style: GoogleFonts.poppins(
+                            textStyle: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                              fontSize: 18,
+                            ),
+                    ),
+                    ),
+                   
+
+                     //const SizedBox(height: 20,),
+                  
+                      
+======================================================================
+
+Row(
+                      children: [
+                        Image.asset("assets/images/alert.png", height: 50,width: 50,),
+                        const SizedBox(width: 10,),
+                        Column(
+                         crossAxisAlignment: CrossAxisAlignment.start, 
+                          children: [
+                            Text(
+                              'Jethro Adamu',
+                              style: GoogleFonts.poppins(
+                                      textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black,
+                                      ),
+                              ),
+                              
+                            ),
+                            Text(
+                              'Email Scam',
+                              style: GoogleFonts.poppins(
+                                      textStyle: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.blueGrey,
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        Container(
+                          height: 15,
+                          width: 15,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                   const SizedBox(height: 20,),
+
+                   Row(
+                      children: [
+                        Image.asset("assets/images/alert.png", height: 50,width: 50,),
+                        const SizedBox(width: 10,),
+                        Column(
+                         crossAxisAlignment: CrossAxisAlignment.start, 
+                          children: [
+                            Text(
+                              'Gaius Isaac',
+                              style: GoogleFonts.poppins(
+                                      textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black,
+                                      ),
+                              ),
+                              
+                            ),
+                            Text(
+                              'Email Scam',
+                              style: GoogleFonts.poppins(
+                                      textStyle: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.blueGrey,
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        Container(
+                          height: 15,
+                          width: 15,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.amber,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                     const SizedBox(height: 20,),
+                    Row(
+                      children: [
+                        Image.asset("assets/images/alert.png", height: 50,width: 50,),
+                        const SizedBox(width: 10,),
+                        Column(
+                         crossAxisAlignment: CrossAxisAlignment.start, 
+                          children: [
+                            Text(
+                              'Jethro Adamu',
+                              style: GoogleFonts.poppins(
+                                      textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black,
+                                      ),
+                              ),
+                              
+                            ),
+                            Text(
+                              'Email Scam',
+                              style: GoogleFonts.poppins(
+                                      textStyle: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.blueGrey,
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        Container(
+                          height: 15,
+                          width: 15,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                   const SizedBox(height: 20,),
+
+                   Row(
+                      children: [
+                        Image.asset("assets/images/alert.png", height: 50,width: 50,),
+                        const SizedBox(width: 10,),
+                        Column(
+                         crossAxisAlignment: CrossAxisAlignment.start, 
+                          children: [
+                            Text(
+                              'Gaius Isaac',
+                              style: GoogleFonts.poppins(
+                                      textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black,
+                                      ),
+                              ),
+                              
+                            ),
+                            Text(
+                              'Email Scam',
+                              style: GoogleFonts.poppins(
+                                      textStyle: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.blueGrey,
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        Container(
+                          height: 15,
+                          width: 15,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.amber,
+                          ),
+                        ),
+                      ],
+                    ),
