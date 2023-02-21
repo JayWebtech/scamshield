@@ -1,5 +1,6 @@
+import 'dart:async';
 import 'dart:io';
-
+import 'package:internet_popup/internet_popup.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,17 +24,32 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardScreenSate extends State<Dashboard> {
+  var fullNumber ="empty";
+  var pNumber ="empty";
+  var stat = 0;
   String imageUrl = '';
   TextEditingController _stype = TextEditingController();
   TextEditingController _email = TextEditingController();
   TextEditingController _gsm = TextEditingController();
   TextEditingController _desc = TextEditingController();
   TextEditingController _website = TextEditingController();
+  TextEditingController _search = TextEditingController();
+
+  var searchValue;
 
   int _selectedIndex = 0;  
   // Initial Selected Value
+   List<File> images = [];
+
   final List<String> accountType = ["Email", "Call", "SMS", "Whatsapp", "Website"];
+  //final List<String> accountTypeval= ["smail","gsm","gsm","gsm","website"];
+   final List<String> accountTypeval = ["Email", "Call", "SMS", "Whatsapp", "Website"];
+  bool btnStatus = true;
+  bool btnStatusx = true;
   late String _currentAccountType ="Hello";
+
+   late String _currentAccountTypex ="";
+
   void _onItemTapped(int index) {  
     setState(() {  
       _selectedIndex = index;  
@@ -43,58 +59,9 @@ class _DashboardScreenSate extends State<Dashboard> {
     final uid = FirebaseAuth.instance.currentUser!.uid;
     late final String email = auth!.email.toString();
     CollectionReference users = FirebaseFirestore.instance.collection('users');
+    final db = FirebaseFirestore.instance;
 
-
-    void sendReport(data) async{
-      OverlayProgressIndicator.show(
-      context: context,
-      backgroundColor: Colors.black45,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20.0),
-          ),
-          padding: const EdgeInsets.all(30.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              CircularProgressIndicator(),
-              SizedBox(
-                height: 10,
-              ),
-              Text(
-                'Please wait...',
-              ),
-            ],
-          ),
-        ),
-      );
-        final CollectionReference reference = FirebaseFirestore.instance.collection('reports');
-        await reference.add(data).then((value) => 
-                  OverlayProgressIndicator.hide().then((value) => 
-                            
-                  QuickAlert.show(
-                      context: context,
-                      type: QuickAlertType.success,
-                      text: 'Report send successfully, Once verified, it will be mark as scam',
-                      confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
-                      onConfirmBtnTap: (){
-
-                         Navigator.of(context, rootNavigator: true).pop('dialog');
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const Dashboard()));
-                    
-                           
-                        
-                      }
-                      )
-                  )
-                  
-                  );
-    }
+    
     
 
     String name = '';
@@ -135,8 +102,12 @@ class _DashboardScreenSate extends State<Dashboard> {
     }
 
  
-
-    
+  @override
+  void initState() {
+    super.initState();
+    InternetPopup().initialize(context: context);
+  }
+  
   @override
   Widget build(BuildContext context) {
     late List<Widget> widgetOptions = <Widget>[  
@@ -531,6 +502,13 @@ class _DashboardScreenSate extends State<Dashboard> {
                                 setState(() {
                                   _currentAccountType = val!;
                                 });
+                                setState(() {
+                                  if(_currentAccountType.isEmpty){
+                                    btnStatus=true;
+                                  }else{
+                                    btnStatus=false;
+                                  }
+                                });
                               },
                             ),
                           
@@ -547,7 +525,13 @@ class _DashboardScreenSate extends State<Dashboard> {
                               ),
                               initialCountryCode: 'NG',
                               onChanged: (phone) {
-                                // print(phone.completeNumber);
+                                //print(phone.completeNumber);
+                                setState(() {
+                                   fullNumber = phone.completeNumber;
+                                   
+                                });
+                              
+                              //print(fullNumber);
                               },
                               ),
 
@@ -609,38 +593,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                                   icon: const Icon(
                                     Icons.upload,
                                   ), onPressed: () async { 
-                                        ImagePicker imagePicker = ImagePicker();
-                                        XFile? file =
-                                            await imagePicker.pickImage(source: ImageSource.gallery);
-                                        print('${file?.path}');
-
-                                        if (file == null) return;
-                                        //Import dart:core
-                                        String uniqueFileName =
-                                            DateTime.now().millisecondsSinceEpoch.toString();
-
-                                        /*Step 2: Upload to Firebase storage*/
-                                        //Install firebase_storage
-                                        //Import the library
-
-                                        //Get a reference to storage root
-                                        Reference referenceRoot = FirebaseStorage.instance.ref();
-                                        Reference referenceDirImages =
-                                            referenceRoot.child('images');
-
-                                        //Create a reference for the image to be stored
-                                        Reference referenceImageToUpload =
-                                            referenceDirImages.child(uniqueFileName);
-
-                                        //Handle errors/success
-                                        try {
-                                          //Store the file
-                                          await referenceImageToUpload.putFile(File(file.path));
-                                          //Success: get the download URL
-                                          imageUrl = await referenceImageToUpload.getDownloadURL();
-                                        } catch (error) {
-                                          //Some error occurred
-                                        }
+                                    getMultipImage();
                                   },
                                 ),
                                 ),
@@ -649,6 +602,32 @@ class _DashboardScreenSate extends State<Dashboard> {
                                     " Attachment (Message Screenshots)"
                                   )
                                 ],
+                              ),
+                              const SizedBox(height: 20),
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width,
+                                height: images.isEmpty ? 50 : 150,
+                                child: images.isEmpty
+                                    ? const Center(
+                                        child: Text("No Images found"),
+                                      )
+                                    : ListView.builder(
+                                        scrollDirection: Axis.horizontal,
+                                        itemBuilder: (ctx, i) {
+                                          return Container(
+                                              width: 100,
+                                              margin: const EdgeInsets.only(right: 10),
+                                              height: 100,
+                                              decoration: BoxDecoration(
+                                                  border: Border.all(color: Colors.black),
+                                                  borderRadius: BorderRadius.circular(8)),
+                                              child: Image.file(
+                                                images[i],
+                                                fit: BoxFit.cover,
+                                              ));
+                                        },
+                                        itemCount: images.length,
+                                      ),
                               ),
                               const SizedBox(height: 20),
 
@@ -661,8 +640,19 @@ class _DashboardScreenSate extends State<Dashboard> {
                                     horizontal: 161,
                                     vertical: 18)
                                 ),
-                              onPressed: () async {
-                                if(_currentAccountType=="Email" && _email.text ==""){
+                              onPressed: btnStatus ? null : () async {
+                                final bool emailValid = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(_email.text);
+                                if(_currentAccountType=="Email" && !emailValid){
+                                    QuickAlert.show(
+                                      title: "Alert",
+                                      context: context,
+                                      type: QuickAlertType.info,
+                                      text: 'Please enter a valid email',
+                                      confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
+                                      
+                                      );
+                                }
+                                else if(_currentAccountType=="Email" && _email.text ==""){
                                      QuickAlert.show(
                                       title: "Alert",
                                       context: context,
@@ -671,7 +661,25 @@ class _DashboardScreenSate extends State<Dashboard> {
                                       confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
                                       
                                       );
-                                }else if(_currentAccountType=="Call" || _currentAccountType=="SMS" || _currentAccountType=="Whatsapp" && _gsm.text ==""){
+                                }else if(_currentAccountType=="Call" && _gsm.text==""){
+                                      QuickAlert.show(
+                                      title: "Alert",
+                                      context: context,
+                                      type: QuickAlertType.info,
+                                      text: 'Please enter scammer\'s number',
+                                      confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
+                                      
+                                      );
+                                }else if(_currentAccountType=="SMS" && _gsm.text==""){
+                                      QuickAlert.show(
+                                      title: "Alert",
+                                      context: context,
+                                      type: QuickAlertType.info,
+                                      text: 'Please enter scammer\'s number',
+                                      confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
+                                      
+                                      );
+                                }else if(_currentAccountType=="Whatsapp" && _gsm.text==""){
                                       QuickAlert.show(
                                       title: "Alert",
                                       context: context,
@@ -690,27 +698,25 @@ class _DashboardScreenSate extends State<Dashboard> {
                                       
                                       );
                                 }
-                                else if (imageUrl.isEmpty) {
+                                else if (images.isEmpty) {
                                   ScaffoldMessenger.of(context)
                                       .showSnackBar(const SnackBar(content: Text('Please upload an image for proof')));
                                   return;
-                                }else{
-                                    String email = _email.text;
+                                }
+                                else{
+                                    String semail = _email.text;
                                     String gsm = _gsm.text;
                                     String website = _website.text;
                                     String desc = _desc.text;
-                                    Map<String, String> dataToSend = {
-                                      'desc': desc,
-                                      'email': email,
-                                      'gsm': gsm,
-                                      'image': imageUrl,
-                                      'smail': email,
-                                      'sname': name,
-                                      'stype': _currentAccountType,
-                                      'website': website
-                                      
-                                    };
-                                    sendReport(dataToSend);
+                                  for (int i = 0; i < images.length; i++) {
+                                    String url = await uploadFile(images[i]);
+                                    downloadUrls.add(url);
+
+                                    if (i == images.length - 1) {
+                                      storeEntry(downloadUrls, semail, website, desc, fullNumber,email);
+                                    }
+                                  }
+                                   
                                     //_reference.add(dataToSend);
                                 }
                                 
@@ -737,7 +743,358 @@ class _DashboardScreenSate extends State<Dashboard> {
           }
           
       ), 
-      const Text('Profile Page', style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold)), 
+      //VERIFICATION
+      FutureBuilder(
+          future: retrieveUser(),
+          builder: (_, snapshot) {
+            if (snapshot.hasError) {
+              return Text(snapshot.error.toString());
+            } else {
+          return Column(
+            children: [Container(
+            height:360,
+            width: MediaQuery.of(context).size.width,
+            padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 20),
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(35), bottomRight: Radius.circular(35)),
+              gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [
+                Color(0xFF1b1464),
+                Color(0xFF020024),
+              ],
+            )
+                //color: Color(0xFF1b1464),
+            ),
+       
+           
+            child: Column(
+                children: [
+                   Align(
+                      alignment: Alignment.centerLeft,
+                      child: CircleAvatar(
+                          radius: 25,
+                          backgroundColor: const Color(0xFF1b1464), 
+                      child: IconButton(
+                      color: Colors.white,
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_outlined,
+                      ), onPressed: () { 
+                            _onItemTapped(0);
+                       },
+                    ),
+                      ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('Verify Data',
+                    style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 28,
+                        color: Colors.white,
+                        
+                      ),
+                    ),
+                  ),
+                  ),
+                   const SizedBox(
+                    height: 25,
+                  ),
+                  DropdownButtonFormField(
+                              focusColor: Colors.white,
+                              dropdownColor: const Color(0xFF1b1464), 
+                              style: const TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+                              //focusColor: Colors.white,
+                              decoration: const InputDecoration(
+                                labelText: "Select Search Category",
+                                labelStyle: TextStyle(color: Colors.white,),
+                                enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+                                border: OutlineInputBorder(),
+                               focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+                               
+                              ),
+                            
+                              items: accountTypeval.map((accountTypeval) {
+                                return DropdownMenuItem(
+                                  value: accountTypeval,
+                                  child: Text(accountTypeval),
+                                );
+                              }).toList(),
+                              onChanged: (val) {
+
+                                if(val=="Call" || val=="SMS" || val=="Whatsapp"){
+                                  setState(() {
+                                    _currentAccountTypex = "gsm";
+                                  });
+                                }else if(val=="Email"){
+                                  setState(() {
+                                    _currentAccountTypex = "smail";
+                                  });
+                                }else{
+                                  setState(() {
+                                  _currentAccountTypex = "website";
+                                  });
+                                }
+                                
+                              },
+                            ),
+
+                  const SizedBox(height: 20,),
+               Row(
+                
+                children: [
+                  
+                  Flexible(
+                    flex: 1,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(10),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color.fromARGB(15, 114, 114, 114),
+                          blurRadius: 10.0,
+                          spreadRadius: 2.0,
+                          offset: Offset(0.0, 0.0),
+                        )
+                      ],
+                    ),
+                      child: TextField(
+                        controller: _search,
+                      cursorColor: Colors.black,
+                      decoration: InputDecoration(
+                        fillColor: Colors.white,
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        hintText: 'Enter number, website or email',
+                        hintStyle: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 16
+                        ),
+                        prefixIcon: Container(
+                          padding: const EdgeInsets.all(15),
+                          width: 18,
+                          child: const Icon(Icons.search),
+                        ),
+                        
+                      ),
+                    ),
+                  ),
+                  ),
+                  Container(
+                    
+                    margin: const EdgeInsets.only (left: 10),
+                    padding: const EdgeInsets.all(7),
+                    decoration: const BoxDecoration(
+                      color: Color.fromARGB(255, 56, 39, 238),
+                      borderRadius: BorderRadius.all(Radius.circular(10)),
+                        boxShadow: [
+                        BoxShadow(
+                          color: Color.fromARGB(15, 102, 101, 101),
+                          blurRadius: 15.0,
+                          spreadRadius: 2.0,
+                          offset: Offset(0.0, 0.0),
+                        )
+                      ],
+                    ),
+
+
+                    child: IconButton(
+                      color: Colors.white,
+                      icon: const Icon(
+                        Icons.search,
+                      ), onPressed: () { 
+                        if(_currentAccountTypex==""){
+                          QuickAlert.show(
+                          context: context,
+                          type: QuickAlertType.info,
+                          text: 'Please select search category',
+                          confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
+                          ); 
+                        }else{
+                          setState(() {
+                             searchValue = _search.text.trim();
+                             
+                           });
+                        }
+                           
+                       },
+                    ),
+
+
+                  ),
+                ],
+               ),
+                  
+                ],
+            ),
+           
+            ),
+
+          Expanded(
+            
+           // height: MediaQuery.of(context).size.height -250,
+          //  child: SingleChildScrollView(
+          //       scrollDirection: Axis.vertical,
+                child: searchValue?.isEmpty ?? true ?
+                 
+                Column(
+                  children: [
+                    const SizedBox(height: 20,),
+                    Text("Please type something...",
+                style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w300,
+                          fontSize: 16),
+                    ),
+                    )
+                  ],
+                ) 
+                
+                    
+                    : StreamBuilder<QuerySnapshot>(
+                stream: db.collection('reports').where(_currentAccountTypex,whereIn: [searchValue]).snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return  Center(
+                      child: Column(
+                        children: const [
+                          SizedBox(height: 15,),
+                          CircularProgressIndicator(),
+                          SizedBox(height: 15,),
+                          //Text("No results found")
+                        ],
+                        )
+                    );
+                  } else {
+                    if(snapshot.data==null || snapshot.data!.docs.isEmpty){
+                      
+                      return  Center(
+                      child: Column(
+                        children:  [
+                         const SizedBox(height: 15,),
+                         
+                          //const CircularProgressIndicator(),
+                           Text("No results found",
+                            style: GoogleFonts.poppins(
+                                  textStyle: const TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w300,
+                                      fontSize: 16),
+                                ),
+                    ),
+                    const SizedBox(height: 15,),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0)),
+                          backgroundColor: const Color.fromARGB(255, 56, 39, 238),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: MediaQuery.of(context).size.width / 3,
+                              vertical: 20)
+                          ),
+                      onPressed: () {
+                        _onItemTapped(1);
+                      },
+                      child: const Text(
+                        'Click to report',
+                        style: TextStyle(fontSize: 17),
+                      )),
+                        ],
+                        )
+                    );
+                    }else{
+                    return ListView(
+                      children: snapshot.data!.docs.map((doc) {
+                        return Card(
+                          child: ListTile(
+                            title: Text(doc.data().toString().contains('email') ? doc.get('email') : '', ),
+                          ),
+                        );
+                      }).toList(),
+                    );
+                    }
+                  }
+                },
+              //),
+    
+                // ListView.builder(
+                //         shrinkWrap: true,
+                //         itemCount:15,
+                //         scrollDirection: Axis.vertical,
+                //         physics: const ScrollPhysics(),
+                //         itemBuilder: (context,index) {
+                //             return 
+                //             Container(
+                //               padding: const EdgeInsets.only(bottom: 20),
+                //             child:Row(
+                              
+                //       children: [
+                //         Image.asset("assets/images/alert.png", height: 60,width: 60,),
+                //         const SizedBox(width: 10,),
+                //         Column(
+                //          crossAxisAlignment: CrossAxisAlignment.start, 
+                //           children: [
+                //             Text(
+                //               'Jethro Adamu',
+                //               style: GoogleFonts.poppins(
+                //                       textStyle: const TextStyle(
+                //                         fontSize: 16,
+                //                         color: Colors.black,
+                //                       ),
+                //               ),
+                              
+                //             ),
+                //             Text(
+                //               'Email Scam',
+                //               style: GoogleFonts.poppins(
+                //                       textStyle: const TextStyle(
+                //                         fontSize: 14,
+                //                         color: Colors.blueGrey,
+                //                       ),
+                //               ),
+                //             ),
+                //           ],
+                //         ),
+                //         const Spacer(),
+                //         Container(
+                //           height: 15,
+                //           width: 15,
+                //           decoration: const BoxDecoration(
+                //             shape: BoxShape.circle,
+                //             color: Colors.red,
+                //           ),
+                //         ),
+                        
+                //       ],
+                //     ),
+                //             );
+  
+                //         }
+                //       )
+                
+            )
+          )
+            
+            ],
+          );
+
+            
+       }
+          }
+          
+      ), 
       const Text('Account Page', style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold)),  
     ];  
     return Scaffold(
@@ -755,25 +1112,138 @@ class _DashboardScreenSate extends State<Dashboard> {
         items:  const [
           BottomNavigationBarItem(
             label: 'Home',
-            icon: Icon(Icons.home_filled),
+            icon: Icon(Icons.home_outlined),
           ),
           BottomNavigationBarItem(
             label: 'Report',
-            icon: Icon(Icons.report),
+            icon: Icon(Icons.report_outlined),
           ),
           BottomNavigationBarItem(
             label: 'Verify',
-            icon: Icon(Icons.search),
+            icon: Icon(Icons.search_outlined),
           ),
           BottomNavigationBarItem(
             label: 'Account',
-            icon: Icon(Icons.person),
+            icon: Icon(Icons.person_outline_outlined),
           ),
         ],
       ),
 
-      body:  widgetOptions.elementAt(_selectedIndex)
+      body: widgetOptions.elementAt(_selectedIndex)
+    
          
     );
+  }
+
+ 
+
+ List<String> downloadUrls = [];
+
+  final ImagePicker _picker = ImagePicker();
+
+  getMultipImage() async {
+    final List<XFile>? pickedImages = await _picker.pickMultiImage();
+
+    if (pickedImages != null) {
+      pickedImages.forEach((e) {
+        images.add(File(e.path));
+      });
+
+      setState(() {});
+    }
+  }
+
+  Future<String> uploadFile(File file) async {
+    OverlayProgressIndicator.show(
+    context: context,
+    backgroundColor: Colors.black45,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        padding: const EdgeInsets.all(30.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            CircularProgressIndicator(),
+            SizedBox(
+              height: 10,
+            ),
+            Text("Uploading Image...."),
+          ],
+        ),
+      ),
+    );
+    final metaData = SettableMetadata(contentType: 'image/jpeg');
+    final storageRef = FirebaseStorage.instance.ref();
+    Reference ref = storageRef
+        .child('images/${DateTime.now().microsecondsSinceEpoch}');
+    final uploadTask = ref.putFile(file, metaData);
+
+    final taskSnapshot = await uploadTask.whenComplete(() => 
+    OverlayProgressIndicator.hide()
+      );
+    String url = await taskSnapshot.ref.getDownloadURL();
+    return url;
+  }
+
+  storeEntry(List<String> imageUrls, semail, website, desc, fullNumber,email) async {
+    OverlayProgressIndicator.show(
+    context: context,
+    backgroundColor: Colors.black45,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        padding: const EdgeInsets.all(30.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            CircularProgressIndicator(),
+            SizedBox(
+              height: 10,
+            ),
+            Text("Submitting..."),
+          ],
+        ),
+      ),
+    );
+    final CollectionReference reference = FirebaseFirestore.instance.collection('reports');
+        await reference.add({
+          'desc': desc,
+          'email': email,
+          'gsm': fullNumber,
+          'image': imageUrls,
+          'smail': semail,
+          'sname': name,
+          'stype': _currentAccountType,
+          'website': website
+          }).then((value) => 
+                  OverlayProgressIndicator.hide().then((value) => 
+                            
+                  QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.success,
+                      text: 'Report send successfully, Once verified, it will be mark as scam',
+                      confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
+                      onConfirmBtnTap: (){
+
+                         Navigator.of(context, rootNavigator: true).pop('dialog');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const Dashboard()));
+                    
+                           
+                        
+                      }
+                      )
+                  )
+                  
+                  );
   }
 }

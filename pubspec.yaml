@@ -55,6 +55,7 @@ dependencies:
   flutter_dropdown_x: ^0.0.2
   dropdown_selection: ^2.0.3
   image_picker: ^0.8.6+2
+  internet_popup: ^1.0.8+5
 
 dev_dependencies:
   flutter_test:

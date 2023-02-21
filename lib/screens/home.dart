@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:scamshield/screens/sign_up.dart';
@@ -8,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:quickalert/quickalert.dart';
 import 'package:overlay_progress_indicator/overlay_progress_indicator.dart';
 import 'package:scamshield/screens/dashboard.dart';
+import 'package:internet_popup/internet_popup.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -96,33 +96,14 @@ class _HomeState extends State<Home> {
         }
       }
 
-            
-    
-    //  await FirebaseFirestore.instance.collection('users').where('email', isEqualTo: data).where('pword', isEqualTo: pword).limit(1).get().then((QuerySnapshot querySnapshot) {
           
-    //         if(querySnapshot.docs.isEmpty){
-    //                OverlayProgressIndicator.hide();
-    //                 QuickAlert.show(
-    //                   context: context,
-    //                   type: QuickAlertType.error,
-    //                   text: 'Invalid Login Details',
-    //                   confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
-                      
-    //                   );     
-    //         }else{
-    //           Navigator.of(context, rootNavigator: true).pop('dialog');
-    //             Navigator.push(
-    //                 context,
-    //                 MaterialPageRoute(
-    //                     builder: (context) => const Dashboard())
-    //             );
-    //         }
-        
-    // });
-    
 
   }
-
+    @override
+  void initState() {
+    super.initState();
+    InternetPopup().initialize(context: context);
+  }
   @override
    Widget build(BuildContext context) {
     return Scaffold(

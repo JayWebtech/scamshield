@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:scamshield/utilities/styles.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:scamshield/screens/home.dart';
@@ -101,35 +102,45 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const <Widget>[
-                              Center(
+                            children: <Widget>[
+                              const Center(
                                 child: Image(
                                   image: AssetImage(
                                     'assets/images/onboarding0.png',
                                   ),
-                                  height: 300.0,
-                                  width: 300.0,
+                                  height: 250.0,
+                                  width: 250.0,
                                 ),
                               ),
-                              SizedBox(height: 5.0),
+                              const SizedBox(height: 5.0),
                               Center(
                               child: Text(
-                                'Report any suspicious number',
-                                style: kTitleStyle,
+                                'Report any suspicious activity',
+                                style: GoogleFonts.poppins(
+                                textStyle: const TextStyle(
+                                  fontSize: 24,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600
+                                ),
+                              ),
                                 textAlign: TextAlign.center,
                               ),
                               ),
-                              SizedBox(height: 15.0),
+                             const SizedBox(height: 5.0),
                               // ignore: prefer_const_constructors
-                              Expanded(
-                                child: Center(
+                                Center(
                                 child: Text(
-                                  'Scam Shield allows you to report  phone numbers & emails related to  fraudlent activities ',
+                                  'Scam Shield allows you to report phone numbers, emails and websites related to  fraudlent activities ',
                                   textAlign: TextAlign.center,
-                                  style: kSubtitleStyle,
+                                  style: GoogleFonts.poppins(
+                                textStyle: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
                                 ),
                               ),
+                                ),
                               ),
+                              
                             ],
                           ),
                         
@@ -140,28 +151,39 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           // ignore: prefer_const_literals_to_create_immutables
                           children: <Widget>[
-                            const Image(
+                            const Center(
+                            child: Image(
                               image: AssetImage(
                                 'assets/images/onboarding1.png',
                               ),
-                              height: 300.0,
-                              width: 300.0,
+                              height: 250.0,
+                              width: 250.0,
                             ),
-                            const SizedBox(height: 10.0),
-                            const Expanded(
-                              child: Center(
+                            ),
+                            const SizedBox(height: 5.0),
+                              Center(
                               child: Text(
                                 'Protect yourself from Scam',
                                 textAlign: TextAlign.center,
-                                style: kTitleStyle,
+                                style: GoogleFonts.poppins(
+                            textStyle: const TextStyle(
+                              fontSize: 24,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600
+                            ),
+                          ),
                               ),
                             ),
-                            ),
-                            const SizedBox(height: 15.0),
-                            const Center(
+                            const SizedBox(height: 5.0),
+                             Center(
                             child: Text(
-                              'Scan Shield allows you to view spam numbers & emails to detect scam',
-                              style: kSubtitleStyle,
+                              'Scan Shield allows you to view numbers, emails and website related to fraudalent activities',
+                              style: GoogleFonts.poppins(
+                                textStyle: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
                               textAlign: TextAlign.center,
                             ),
                             ),
@@ -180,24 +202,34 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   image: AssetImage(
                                     'assets/images/onboarding2.png',
                                   ),
-                                  height: 300.0,
-                                  width: 300.0,
-                                ),
-                              ),
-                              const SizedBox(height: 30.0),
-                              const Expanded(
-                                child: Center(
-                                child: Text(
-                                  'Proof of Report',
-                                  style: kTitleStyle,
-                                  textAlign: TextAlign.center,
-                                ),
+                                  height: 250.0,
+                                  width: 250.0,
                                 ),
                               ),
                               const SizedBox(height: 15.0),
-                              const Text(
-                                'You do not have to panic, Scam Shield verifies all reported numbers',
-                                style: kSubtitleStyle,
+                               Center(
+                                child: Text(
+                                  'Proof of Report',
+                                  style: GoogleFonts.poppins(
+                                textStyle: const TextStyle(
+                                  fontSize: 24,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600
+                                ),
+                              ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                ),
+                             
+                              const SizedBox(height: 10.0),
+                               Text(
+                                'You do not have to panic, Scam Shield verifies all reported data',
+                                style: GoogleFonts.poppins(
+                                textStyle: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
                                 textAlign: TextAlign.center,
                               ),
                             ],
@@ -226,12 +258,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             mainAxisSize: MainAxisSize.min,
                             // ignore: prefer_const_literals_to_create_immutables
                             children: <Widget>[
-                              const Text(
+                               Text(
                                 'Next',
-                                style: TextStyle(
+                                style: GoogleFonts.poppins(
+                                textStyle: const TextStyle(
+                                  fontSize: 22,
                                   color: Colors.white,
-                                  fontSize: 22.0,
                                 ),
+                              ),
                               ),
                               const SizedBox(width: 10.0),
                               const Icon(
