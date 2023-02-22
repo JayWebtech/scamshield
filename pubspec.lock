@@ -86,7 +86,7 @@ packages:
     source: hosted
     version: "1.16.0"
   connectivity_plus:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: connectivity_plus
       url: "https://pub.dartlang.org"
@@ -381,19 +381,12 @@ packages:
     source: hosted
     version: "2.6.2"
   internet_connection_checker:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: internet_connection_checker
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.0.1+4"
-  internet_popup:
-    dependency: "direct main"
-    description:
-      name: internet_popup
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.8+5"
   intl:
     dependency: transitive
     description:

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:internet_popup/internet_popup.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,6 +10,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:scamshield/screens/home.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'dart:async';
+import 'package:flutter/cupertino.dart';
 
 void main() {
   runApp(const Dashboard());
@@ -24,6 +27,10 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardScreenSate extends State<Dashboard> {
+  late StreamSubscription subscription;
+  bool isDeviceConnected = false;
+  bool isAlertSet = false;
+
   var fullNumber ="empty";
   var pNumber ="empty";
   var stat = 0;
@@ -36,7 +43,7 @@ class _DashboardScreenSate extends State<Dashboard> {
   TextEditingController _search = TextEditingController();
 
   var searchValue;
-
+  String report = "Reported by";
   int _selectedIndex = 0;  
   // Initial Selected Value
    List<File> images = [];
@@ -44,11 +51,13 @@ class _DashboardScreenSate extends State<Dashboard> {
   final List<String> accountType = ["Email", "Call", "SMS", "Whatsapp", "Website"];
   //final List<String> accountTypeval= ["smail","gsm","gsm","gsm","website"];
    final List<String> accountTypeval = ["Email", "Call", "SMS", "Whatsapp", "Website"];
+      final List<String> accountTypev = ["Yes", "No, but I'm suspecting"];
   bool btnStatus = true;
   bool btnStatusx = true;
   late String _currentAccountType ="Hello";
 
    late String _currentAccountTypex ="";
+   late String svic ="";
 
   void _onItemTapped(int index) {  
     setState(() {  
@@ -104,8 +113,26 @@ class _DashboardScreenSate extends State<Dashboard> {
  
   @override
   void initState() {
+    getConnectivity();
     super.initState();
-    InternetPopup().initialize(context: context);
+    ///InternetPopup().initialize(context: context);
+  }
+
+   getConnectivity() =>
+      subscription = Connectivity().onConnectivityChanged.listen(
+        (ConnectivityResult result) async {
+          isDeviceConnected = await InternetConnectionChecker().hasConnection;
+          if (!isDeviceConnected && isAlertSet == false) {
+            showDialogBox();
+            setState(() => isAlertSet = true);
+          }
+        },
+      );
+
+       @override
+  void dispose() {
+    subscription.cancel();
+    super.dispose();
   }
   
   @override
@@ -198,8 +225,11 @@ class _DashboardScreenSate extends State<Dashboard> {
            
             ),
             
-            Transform.translate(
-                    offset: const Offset(0, 0),
+            Expanded(
+         
+                  child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                   
                     child: Container(
                      // height: MediaQuery.of(context).size.height-kBottomNavigationBarHeight,
                       padding: const EdgeInsets.only(top: 15, left: 20, right: 20, bottom: 20),
@@ -215,10 +245,11 @@ class _DashboardScreenSate extends State<Dashboard> {
               
           child: Column(
             children: [
+            
               Row(
                 
                 children: [
-                
+                  
                   Flexible(
                     flex: 1,
                     child: Container(
@@ -245,7 +276,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide.none,
                         ),
-                        hintText: 'Verify number or email',
+                        hintText: 'Verify number, email or website',
                         hintStyle: const TextStyle(
                           color: Colors.grey,
                           fontSize: 14
@@ -377,6 +408,7 @@ class _DashboardScreenSate extends State<Dashboard> {
           
         
       ),
+                  ),
             ),
             
             ],
@@ -400,7 +432,7 @@ class _DashboardScreenSate extends State<Dashboard> {
             width: MediaQuery.of(context).size.width,
             padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 20),
             decoration: const BoxDecoration(
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(35), bottomRight: Radius.circular(35)),
+              //borderRadius: BorderRadius.only(bottomLeft: Radius.circular(35), bottomRight: Radius.circular(35)),
               gradient: LinearGradient(
               begin: Alignment.topRight,
               end: Alignment.bottomLeft,
@@ -480,7 +512,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                       padding: const EdgeInsets.only(left:0, right: 0, bottom: 5, top: 5),
                           child: Column(
                           children: [
-                             const SizedBox(height: 10),
+                             const SizedBox(height: 5),
                              
                              DropdownButtonFormField(
                               focusColor: const Color(0xFF1b1464),
@@ -581,6 +613,32 @@ class _DashboardScreenSate extends State<Dashboard> {
 
                               const SizedBox(height: 20),
 
+                              DropdownButtonFormField(
+                              focusColor: const Color(0xFF1b1464),
+                              
+                              decoration: const InputDecoration(
+                                labelText: "Did you fall Victim of the Scam?",
+                                labelStyle: TextStyle(color: Color(0xFF1b1464)),
+                                enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF1b1464))),
+                                border: OutlineInputBorder(),
+                               focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF1b1464))),
+                              ),
+                            
+                              items: accountTypev.map((accountTypev) {
+                                return DropdownMenuItem(
+                                  value: accountTypev,
+                                  child: Text(accountTypev),
+                                );
+                              }).toList(),
+                              onChanged: (valv) {
+                                setState(() {
+                                  svic = valv!;
+                                });
+                                
+                              },
+                            ),
+                             const SizedBox(height: 20),
+
                               Row(
                                 children: [
                                   Align(
@@ -636,8 +694,8 @@ class _DashboardScreenSate extends State<Dashboard> {
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(5.0)),
                                 backgroundColor: const Color(0xFF1b1464),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 161,
+                                padding:  EdgeInsets.symmetric(
+                                    horizontal: MediaQuery.of(context).size.width / 2.6,
                                     vertical: 18)
                                 ),
                               onPressed: btnStatus ? null : () async {
@@ -697,7 +755,17 @@ class _DashboardScreenSate extends State<Dashboard> {
                                       confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
                                       
                                       );
+                                }else if(svic==""){
+                                    QuickAlert.show(
+                                      title: "Alert",
+                                      context: context,
+                                      type: QuickAlertType.info,
+                                      text: 'Please select whether you fall victim',
+                                      confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
+                                      
+                                      );
                                 }
+                                
                                 else if (images.isEmpty) {
                                   ScaffoldMessenger.of(context)
                                       .showSnackBar(const SnackBar(content: Text('Please upload an image for proof')));
@@ -713,7 +781,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                                     downloadUrls.add(url);
 
                                     if (i == images.length - 1) {
-                                      storeEntry(downloadUrls, semail, website, desc, fullNumber,email);
+                                      storeEntry(downloadUrls, semail, website, desc, fullNumber,email,svic);
                                     }
                                   }
                                    
@@ -744,19 +812,29 @@ class _DashboardScreenSate extends State<Dashboard> {
           
       ), 
       //VERIFICATION
+      
       FutureBuilder(
           future: retrieveUser(),
           builder: (_, snapshot) {
             if (snapshot.hasError) {
               return Text(snapshot.error.toString());
             } else {
-          return Column(
-            children: [Container(
-            height:360,
+          return 
+          
+          Column(
+            children: [
+            Expanded(
+         
+                  child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                  child:  
+              Container(
+            height:300,
+          
             width: MediaQuery.of(context).size.width,
-            padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 20),
+            padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 0),
             decoration: const BoxDecoration(
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(35), bottomRight: Radius.circular(35)),
+              
               gradient: LinearGradient(
               begin: Alignment.topRight,
               end: Alignment.bottomLeft,
@@ -771,23 +849,9 @@ class _DashboardScreenSate extends State<Dashboard> {
            
             child: Column(
                 children: [
-                   Align(
-                      alignment: Alignment.centerLeft,
-                      child: CircleAvatar(
-                          radius: 25,
-                          backgroundColor: const Color(0xFF1b1464), 
-                      child: IconButton(
-                      color: Colors.white,
-                      icon: const Icon(
-                        Icons.arrow_back_ios_new_outlined,
-                      ), onPressed: () { 
-                            _onItemTapped(0);
-                       },
-                    ),
-                      ),
-                  ),
+                  
                   const SizedBox(
-                    height: 20,
+                    height: 5,
                   ),
                     Align(
                       alignment: Alignment.centerLeft,
@@ -803,7 +867,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                   ),
                   ),
                    const SizedBox(
-                    height: 25,
+                    height: 10,
                   ),
                   DropdownButtonFormField(
                               focusColor: Colors.white,
@@ -845,6 +909,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                             ),
 
                   const SizedBox(height: 20,),
+              
                Row(
                 
                 children: [
@@ -866,6 +931,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                         )
                       ],
                     ),
+                    
                       child: TextField(
                         controller: _search,
                       cursorColor: Colors.black,
@@ -889,6 +955,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                         
                       ),
                     ),
+                      
                   ),
                   ),
                   Container(
@@ -939,6 +1006,8 @@ class _DashboardScreenSate extends State<Dashboard> {
                 ],
             ),
            
+            ),
+                  )
             ),
 
           Expanded(
@@ -1015,15 +1084,76 @@ class _DashboardScreenSate extends State<Dashboard> {
                         )
                     );
                     }else{
-                    return ListView(
+                    return 
+
+                   ListView(
                       children: snapshot.data!.docs.map((doc) {
-                        return Card(
-                          child: ListTile(
-                            title: Text(doc.data().toString().contains('email') ? doc.get('email') : '', ),
+                       
+                      
+                        return Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color.fromARGB(15, 114, 114, 114),
+                                blurRadius: 10.0,
+                                spreadRadius: 2.0,
+                                offset: Offset(0.0, 0.0),
+                              )
+                            ],
                           ),
-                        );
+                              margin: const EdgeInsets.only(left: 15, right: 15, bottom: 20),
+                              padding: const EdgeInsets.all(10),
+                            child:Row(
+                              
+                      children: [
+                        
+                        Image.asset("assets/images/alert.png", height: 60,width: 60,),
+                        const SizedBox(width: 10,),
+                        Column(
+                         crossAxisAlignment: CrossAxisAlignment.start, 
+                          children: [
+                            Text(doc.data().toString().contains('sname') ? "Reported by ${doc.get('sname')}" : '', 
+                              style: GoogleFonts.poppins(
+                                      textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black,
+                                      ),
+                              ),
+                              
+                            ),
+                            Text(
+                             doc.data().toString().contains('stype') ? "Scam type: ${doc.get('stype')}" : '',
+                              style: GoogleFonts.poppins(
+                                      textStyle: const TextStyle(
+                                        fontSize: 14,
+                                        color:  Color.fromARGB(255, 18, 12, 82),
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        Container(
+                          height: 15,
+                          width: 15,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: doc.get('svic')=="Yes"  ? Colors.red : Colors.amber,
+                          ),
+                        ),
+                        
+                      ],
+                    ),
+                            );
                       }).toList(),
                     );
+
+
+
                     }
                   }
                 },
@@ -1096,12 +1226,13 @@ class _DashboardScreenSate extends State<Dashboard> {
           
       ), 
       const Text('Account Page', style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold)),  
-    ];  
-    return Scaffold(
+      ];  
+      return Scaffold(
       backgroundColor: Colors.white,
-      
+      resizeToAvoidBottomInset: false,
        bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
+        
         currentIndex: _selectedIndex,  
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         selectedItemColor: const Color(0xFF1b1464),
@@ -1189,7 +1320,7 @@ class _DashboardScreenSate extends State<Dashboard> {
     return url;
   }
 
-  storeEntry(List<String> imageUrls, semail, website, desc, fullNumber,email) async {
+  storeEntry(List<String> imageUrls, semail, website, desc, fullNumber,email,svic) async {
     OverlayProgressIndicator.show(
     context: context,
     backgroundColor: Colors.black45,
@@ -1221,7 +1352,8 @@ class _DashboardScreenSate extends State<Dashboard> {
           'smail': semail,
           'sname': name,
           'stype': _currentAccountType,
-          'website': website
+          'website': website,
+          'svic': svic
           }).then((value) => 
                   OverlayProgressIndicator.hide().then((value) => 
                             
@@ -1246,4 +1378,26 @@ class _DashboardScreenSate extends State<Dashboard> {
                   
                   );
   }
+  showDialogBox() => showCupertinoDialog<String>(
+        context: context,
+        builder: (BuildContext context) => CupertinoAlertDialog(
+          title: const Text('No Connection'),
+          content: const Text('Please check your internet connectivity'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context, 'Cancel');
+                setState(() => isAlertSet = false);
+                isDeviceConnected =
+                    await InternetConnectionChecker().hasConnection;
+                if (!isDeviceConnected && isAlertSet == false) {
+                  showDialogBox();
+                  setState(() => isAlertSet = true);
+                }
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
 }
