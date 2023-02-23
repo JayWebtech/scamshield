@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -77,6 +78,8 @@ class _DashboardScreenSate extends State<Dashboard> {
     
 
     String name = '';
+    String pemail = '';
+    String pgsm = '';
     retrieveUser() async{
       await FirebaseFirestore.instance.collection('users').where('email', isEqualTo: email).limit(1).get().then((QuerySnapshot querySnapshot){
           if(querySnapshot.docs.isEmpty){
@@ -105,6 +108,8 @@ class _DashboardScreenSate extends State<Dashboard> {
                   String firstWord = words[0];
                   setState(() {
                     name = firstWord;
+                    pgsm = doc["gsm"];
+                    pemail = doc["email"];
                   });
                   
                 }
@@ -153,7 +158,7 @@ class _DashboardScreenSate extends State<Dashboard> {
             width: MediaQuery.of(context).size.width,
             padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 30),
             decoration: const   BoxDecoration(
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(35), bottomRight: Radius.circular(35)),
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
               gradient: LinearGradient(
               begin: Alignment.topRight,
               end: Alignment.bottomLeft,
@@ -178,7 +183,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                           child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white),) ,
                         )
                       
-                      : Text('Hello $name,',
+                      : Text('Hey $name,',
                     style: GoogleFonts.poppins(
                       textStyle: const TextStyle(
                         fontWeight: FontWeight.bold,
@@ -323,18 +328,11 @@ class _DashboardScreenSate extends State<Dashboard> {
                 ],
               ),
               const SizedBox(
-                height: 20,
+                height: 10,
               ),
-            SizedBox(
-               height : MediaQuery.of(context).size.height - 260 -170,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.vertical,
-              child: Align(
-                    alignment: Alignment.topLeft,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
+               Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
                     'Recent Reports',
                     style: GoogleFonts.poppins(
                             textStyle: const TextStyle(
@@ -344,19 +342,83 @@ class _DashboardScreenSate extends State<Dashboard> {
                             ),
                     ),
                     ),
+               ),
+               const SizedBox(
+                height: 10,
+              ),
+              Row(
+                children: [
+                   Container(
+                          height: 15,
+                          width: 15,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.red,
+                          ),
+                    ),
+                   const  SizedBox(width:5),
+                   const  Text("Victim"),
+                   const  SizedBox(width: 5),
+                     Container(
+                          height: 15,
+                          width: 15,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.amber,
+                          ),
+                    ),
+                    const  SizedBox(width: 5),
+                    const Text("Suspecting"),
+                ],
+              ),
+            const SizedBox(
+                height: 10,
+              ),
+            SizedBox(
+               height : MediaQuery.of(context).size.height - 260 -170,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+              child: 
+                    StreamBuilder<QuerySnapshot>(
+                stream: db.collection('reports').where('status', isEqualTo: 'VERIFIED').orderBy("created", descending: true).limit(15).snapshots(),
+                builder: (context, AsyncSnapshot snapshot) {
+                  if (!snapshot.hasData) {
+                    
+                    return  Center(
+                      child: Column(
+                        children: const [
+                          SizedBox(height: 15,),
+                          CircularProgressIndicator(),
+                          SizedBox(height: 15,),
+                          //Text("No results found")
+                        ],
+                        )
+                    );
+                  }
+                  else{
                    
-
-                     //const SizedBox(height: 20,),
-                  
+                    return 
+                    
+                    
                       ListView.builder(
                         shrinkWrap: true,
-                        itemCount:15,
+                        itemCount:snapshot.data!.docs.length,
                         scrollDirection: Axis.vertical,
                         physics: const ScrollPhysics(),
                         itemBuilder: (context,index) {
+                           DocumentSnapshot ds = snapshot.data!.docs[index];
                             return 
                             Container(
                               padding: const EdgeInsets.only(bottom: 20),
+                               child: GestureDetector( 
+                        onTap: () async {
+                         
+                            setState(() {
+                              searchID = snapshot.data!.docs[index].reference.id;
+                            });
+                          
+                           handleStatefulBackdropContent(context,searchID);
+                        },
                             child:Row(
                               
                       children: [
@@ -366,7 +428,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                          crossAxisAlignment: CrossAxisAlignment.start, 
                           children: [
                             Text(
-                              'Jethro Adamu',
+                            "Reported by ${ds['sname']}",
                               style: GoogleFonts.poppins(
                                       textStyle: const TextStyle(
                                         fontSize: 16,
@@ -376,7 +438,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                               
                             ),
                             Text(
-                              'Email Scam',
+                              ds['stype'],
                               style: GoogleFonts.poppins(
                                       textStyle: const TextStyle(
                                         fontSize: 14,
@@ -390,18 +452,28 @@ class _DashboardScreenSate extends State<Dashboard> {
                         Container(
                           height: 15,
                           width: 15,
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.red,
+                            color: ds['svic'] == "Yes" ? Colors.red : Colors.amber
                           ),
                         ),
                         
                       ],
                     ),
+                               )
                             );
   
                         }
-                      )
+                      );
+                
+
+
+                    }
+                  
+                },
+            
+            )
+                 
 
 
 
@@ -409,9 +481,8 @@ class _DashboardScreenSate extends State<Dashboard> {
 
 
 
-                ],
-              )
-              ),
+
+              
           ),
             ),
             ],
@@ -1045,7 +1116,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                 
                     
                     : StreamBuilder<QuerySnapshot>(
-                stream: db.collection('reports').where(_currentAccountTypex,whereIn: [searchValue.toLowerCase()]).snapshots(),
+                stream: db.collection('reports').where(_currentAccountTypex,whereIn: [searchValue.toLowerCase()]).where('status', isEqualTo: 'VERIFIED').snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
                     return  Center(
@@ -1203,8 +1274,348 @@ class _DashboardScreenSate extends State<Dashboard> {
           }
           
       ), 
-      const Text('Account Page', style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold)), 
-      const Text('View Page', style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold)), 
+      FutureBuilder(
+          future: retrieveUser(),
+          builder: (_, snapshot) {
+            if (snapshot.hasError) {
+              return Text(snapshot.error.toString());
+            } else {
+          return Column(
+            children: [Container(
+            height:280,
+            width: MediaQuery.of(context).size.width,
+            padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 30),
+            decoration: const   BoxDecoration(
+             gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [
+                Color(0xFF1b1464),
+                Color(0xFF020024),
+              ],
+            )
+                //color: Color(0xFF1b1464),
+            ),
+       
+           
+            child: Column(
+                children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      //doc.get('svic')=="Yes"  ? Colors.red : Colors.amber
+                      child: name.isEmpty ? 
+                       const SizedBox(
+                          height: 20.0,
+                          width: 20.0,
+                          child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white),) ,
+                        )
+                      
+                      : Text('Hey $name,',
+                    style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 28,
+                        color: Colors.white,
+                        
+                      ),
+                    ),
+                  ),
+                  ),
+
+
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      //doc.get('svic')=="Yes"  ? Colors.red : Colors.amber
+                    child: Text(pemail,
+                    style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                        
+                      ),
+                    ),
+                  ),
+                  ),
+
+                   Align(
+                      alignment: Alignment.centerLeft,
+                      //doc.get('svic')=="Yes"  ? Colors.red : Colors.amber
+                    child: Text(pgsm,
+                    style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                        
+                      ),
+                    ),
+                  ),
+                  ),
+
+                  
+                  
+                  const SizedBox(
+                          height: 20,
+                    ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(
+                          Icons.logout,
+                        ),
+                      style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0)),
+                              backgroundColor: const Color.fromARGB(255, 56, 39, 238),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 18,
+                                  vertical: 10)
+                              ),
+                          onPressed: () async{
+                             await FirebaseAuth.instance.signOut().then((value) => 
+                             Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => const Home())
+                              ));
+                             // ignore: use_build_context_synchronously
+                             
+                          }, label:Text(
+                            'Logout',
+                            style: GoogleFonts.poppins(
+                            textStyle: const TextStyle(
+                              fontSize: 18,
+                              color: Colors.white,
+                            ),
+                          ),
+                      ),
+                  )
+                  ),
+                ],
+            ),
+           
+            ),
+            
+            Expanded(
+         
+                  child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                   
+                    child: Container(
+                     // height: MediaQuery.of(context).size.height-kBottomNavigationBarHeight,
+                      padding: const EdgeInsets.only(top: 15, left: 20, right: 20, bottom: 20),
+          
+                      child: Column(
+                        children: [
+                        
+                         Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                    'Your Reports',
+                    style: GoogleFonts.poppins(
+                            textStyle: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                              fontSize: 18,
+                            ),
+                    ),
+                    ),
+               ),
+               const SizedBox(
+                height: 10,
+              ),
+               Row(
+                children: [
+                  Container(
+                          height: 15,
+                          width: 15,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.red,
+                          ),
+                    ),
+                   const  SizedBox(width:5),
+                   const  Text("Not Verified"),
+                   const  SizedBox(width: 5),
+                     Container(
+                          height: 15,
+                          width: 15,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.green,
+                          ),
+                    ),
+                    const  SizedBox(width: 5),
+                    const Text("Verified"),
+
+                ],
+               ),
+            const SizedBox(
+                height: 10,
+              ),
+            SizedBox(
+               height : MediaQuery.of(context).size.height - 260 -170,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+              child: 
+                    StreamBuilder<QuerySnapshot>(
+                stream: db.collection('reports').where('email', isEqualTo: pemail).snapshots(),
+                builder: (context, AsyncSnapshot snapshot) {
+                  if (!snapshot.hasData) {
+                    
+                    return  Center(
+                      child: Column(
+                        children: const [
+                          SizedBox(height: 15,),
+                          CircularProgressIndicator(),
+                          SizedBox(height: 15,),
+                          //Text("No results found")
+                        ],
+                        )
+                    );
+                  }else if(snapshot.data==null || snapshot.data!.docs.isEmpty){
+                         return  Center(
+                      child: Column(
+                        children:  [
+                         const SizedBox(height: 15,),
+                         
+                          //const CircularProgressIndicator(),
+                           Text("No Report found",
+                            style: GoogleFonts.poppins(
+                                  textStyle: const TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w300,
+                                      fontSize: 16),
+                                ),
+                    ),
+                    const SizedBox(height: 15,),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0)),
+                          backgroundColor: const Color.fromARGB(255, 56, 39, 238),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: MediaQuery.of(context).size.width/3.5,
+                              vertical: 20)
+                          ),
+                      onPressed: () {
+                        _onItemTapped(1);
+                      },
+                      child: const Text(
+                        'Click to report',
+                        style: TextStyle(fontSize: 17),
+                      )),
+                        ],
+                        )
+                    );
+                  }
+                  else{
+                   
+                    return 
+                    
+                    
+                      ListView.builder(
+                        shrinkWrap: true,
+                        itemCount:snapshot.data!.docs.length,
+                        scrollDirection: Axis.vertical,
+                        physics: const ScrollPhysics(),
+                        itemBuilder: (context,index) {
+                           DocumentSnapshot ds = snapshot.data!.docs[index];
+                            return 
+                            Container(
+                              padding: const EdgeInsets.only(bottom: 20),
+                               child: GestureDetector( 
+                        onTap: () async {
+                         
+                            setState(() {
+                              searchID = snapshot.data!.docs[index].reference.id;
+                            });
+                          
+                           handleStatefulBackdropContent(context,searchID);
+                        },
+                            child:Row(
+                              
+                      children: [
+                        Image.asset("assets/images/alert.png", height: 60,width: 60,),
+                        const SizedBox(width: 10,),
+                        Column(
+                         crossAxisAlignment: CrossAxisAlignment.start, 
+                          children: [
+                            Text(
+                            "Reported by ${ds['sname']}",
+                              style: GoogleFonts.poppins(
+                                      textStyle: const TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black,
+                                      ),
+                              ),
+                              
+                            ),
+                            Text(
+                              ds['stype'],
+                              style: GoogleFonts.poppins(
+                                      textStyle: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.blueGrey,
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        Container(
+                          height: 15,
+                          width: 15,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: ds['status'] == "VERIFIED" ? Colors.green : Colors.red
+                          ),
+                        ),
+                        
+                      ],
+                    ),
+                               )
+                            );
+  
+                        }
+                      );
+                
+
+
+                    }
+                  
+                },
+            
+            )
+                 
+
+
+
+
+
+
+
+
+              
+          ),
+            ),
+                          
+                      
+                        ],
+                      ),
+          
+        
+      ),
+                  ),
+            ),
+            
+            ],
+    
+            );
+
+            }
+          }
+          
+      ),
       ];  
       return Scaffold(
       backgroundColor: Colors.white,
@@ -1333,7 +1744,8 @@ class _DashboardScreenSate extends State<Dashboard> {
           'sname': name,
           'stype': _currentAccountType,
           'website': website,
-          'svic': svic
+          'svic': svic,
+          'status': 'NV'
           }).then((value) => 
                   OverlayProgressIndicator.hide().then((value) => 
                             
@@ -1391,13 +1803,25 @@ void handleStatefulBackdropContent(BuildContext context, searchID) async {
               .doc(searchID) //ID OF DOCUMENT
               .snapshots(),
         builder: (context, snapshot) {
-           var document = snapshot.data;
-           List<String> streetsList =  List<String>.from(document!['image']);
+           
         if (!snapshot.hasData) {
-          return const CircularProgressIndicator();
-        }
-       
-        return Expanded(child:  SingleChildScrollView(
+          return Center(
+            child: Column(
+              children: const [
+                  Text('Fetching...'),
+                  CircularProgressIndicator()
+              ]
+            ),
+          );
+        }else{
+          var document = snapshot.data;
+           List<String> streetsList =  List<String>.from(document!['image']);
+        return 
+           Container(
+            height: MediaQuery.of(context).size.height,
+            padding: const EdgeInsets.only(left: 15, right: 15, bottom: 80, top: 10),
+            
+               child: SingleChildScrollView(
               child: Column(
                 children: [
                   FanCarouselImageSlider(
@@ -1412,26 +1836,93 @@ void handleStatefulBackdropContent(BuildContext context, searchID) async {
 
           const SizedBox(height: 20,),
           //document!['desc']
-
-          Text(
+      Align(
+                      alignment: Alignment.centerLeft,
+          child: Text(
             "Scam Narration",
              style: GoogleFonts.poppins(
                       textStyle: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        color: Colors.white
+                        fontSize: 16,
+                        color: Colors.black
                       ),
                     ),
                 ),
-                
+      ),
+      Align(
+                      alignment: Alignment.centerLeft,
+                child: Text(
+            document['desc'].isEmpty ? "Nil" : document['desc'],
+             style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black
+                      ),
+                    ),
+                ),
+      ),
+      const SizedBox(height: 10,),
+      Align(
+                      alignment: Alignment.centerLeft,
+          child: Text(
+            "Victim",
+             style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.black
+                      ),
+                    ),
+                ),
+      ),
+      Align(
+                      alignment: Alignment.centerLeft,
+                child: Text(
+            document['svic'].isEmpty ? "Nil" : document['svic'],
+             style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black
+                      ),
+                    ),
+                ),
+      ),
+       const SizedBox(height: 10,),
+Align(
+                      alignment: Alignment.centerLeft,
+          child: Text(
+            "Scam type:",
+             style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.black
+                      ),
+                    ),
+                ),
+      ),
+      Align(
+                      alignment: Alignment.centerLeft,
+                child: Text(
+            document['stype'].isEmpty ? "Nil" : document['stype'],
+             style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black
+                      ),
+                    ),
+                ),
+      ),
 
 
                 ],
               ),
-          )
-        );
+               ),
+          
+          );
+       
         
-         
+        }
      }
   ),
 
@@ -1442,12 +1933,6 @@ void handleStatefulBackdropContent(BuildContext context, searchID) async {
       backdropResult = result.toString();
     });
   }
-retriveDetails(searchID){
-       FirebaseFirestore.instance.collection('userNames').where('uid', isEqualTo: searchID)
-        .get()
-        .then((value) {
-          print(value.docs);
-        });
-    }
+
 
 }

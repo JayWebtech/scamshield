@@ -38,9 +38,9 @@ class SplashScreenPage extends StatelessWidget {
     return SplashScreen(  
       seconds: 3,  
       navigateAfterSeconds: const HomeScreen(),  
-      backgroundColor: const Color(0xFF020024),  
-      title: const Text('',style: TextStyle(color: Colors.white, fontSize: 25, height: 0.5), ),  
-      image: Image.asset("assets/images/introimg.png",scale: 1,),  
+      backgroundColor: const Color.fromARGB(255, 7, 2, 88),  
+      title: const Text('Scam Shield',style: TextStyle(color: Colors.white, fontSize: 25, height: 0.5), ),  
+      image: Image.asset("assets/images/logo.png",scale: 2,),  
       photoSize: 150.0,  
       loaderColor: Colors.white,  
     );   //1b1464 statusBarColor: Color.fromARGB(255, 27,20,100), 

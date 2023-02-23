@@ -160,9 +160,9 @@ class _SignupState extends State<Signup> {
               stops: [0.1, 0.4, 0.7, 0.9],
               colors: [
                 Color.fromARGB(255, 7, 2, 88),
-                Color.fromARGB(255, 6, 2, 97),
-                Color.fromARGB(255, 9, 3, 122),
-                Color.fromARGB(255, 9, 3, 122),
+                Color.fromARGB(255, 7, 2, 88),
+                Color.fromARGB(255, 7, 2, 88),
+                Color.fromARGB(255, 7, 2, 88),
               ],
             ),
         ),
@@ -218,7 +218,7 @@ class _SignupState extends State<Signup> {
                    
                     width: MediaQuery.of(context).size.width / 1,
                     decoration: BoxDecoration(
-                        color: const Color(0xFF020024),
+                        color: const Color.fromARGB(255, 7, 2, 88),
                         borderRadius: BorderRadius.circular(20)),
                    
                     child: Column(
@@ -400,6 +400,9 @@ class _SignupState extends State<Signup> {
                       ),
                       ),
                     ],
+                  ),
+                  const SizedBox(
+                    height: 20,
                   ),
                       ],
                    
