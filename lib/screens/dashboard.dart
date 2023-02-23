@@ -323,7 +323,10 @@ class _DashboardScreenSate extends State<Dashboard> {
                         )
                       ],
                     ),
-                    child: const Icon(Icons.search, color: Colors.white,),
+                    child:  GestureDetector(
+                      onTap: (){_onItemTapped(2);},
+                      child: const Icon(Icons.search, color: Colors.white,)
+                    ),
                   ),
                 ],
               ),
@@ -934,7 +937,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                 children: [
                   
                   const SizedBox(
-                    height: 5,
+                    height: 10,
                   ),
                     Align(
                       alignment: Alignment.centerLeft,
@@ -1102,7 +1105,6 @@ class _DashboardScreenSate extends State<Dashboard> {
                  
                 Column(
                   children: [
-                    const SizedBox(height: 15,),
                     Text("Please type something...",
                 style: GoogleFonts.poppins(
                       textStyle: const TextStyle(
