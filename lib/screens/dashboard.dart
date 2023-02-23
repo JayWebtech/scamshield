@@ -14,6 +14,8 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
+import 'package:backdrop_modal_route/backdrop_modal_route.dart';
+import 'package:fan_carousel_image_slider/fan_carousel_image_slider.dart';
 
 void main() {
   runApp(const Dashboard());
@@ -27,6 +29,7 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardScreenSate extends State<Dashboard> {
+  var searchID;
   late StreamSubscription subscription;
   bool isDeviceConnected = false;
   bool isAlertSet = false;
@@ -41,7 +44,7 @@ class _DashboardScreenSate extends State<Dashboard> {
   TextEditingController _desc = TextEditingController();
   TextEditingController _website = TextEditingController();
   TextEditingController _search = TextEditingController();
-
+  String? backdropResult = '';
   var searchValue;
   String report = "Reported by";
   int _selectedIndex = 0;  
@@ -146,7 +149,7 @@ class _DashboardScreenSate extends State<Dashboard> {
             } else {
           return Column(
             children: [Container(
-            height:260,
+            height:250,
             width: MediaQuery.of(context).size.width,
             padding: const EdgeInsets.only(top: 80, left: 20, right: 20, bottom: 30),
             decoration: const   BoxDecoration(
@@ -167,7 +170,15 @@ class _DashboardScreenSate extends State<Dashboard> {
                 children: [
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text('Hello $name,',
+                      //doc.get('svic')=="Yes"  ? Colors.red : Colors.amber
+                      child: name.isEmpty ? 
+                       const SizedBox(
+                          height: 20.0,
+                          width: 20.0,
+                          child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white),) ,
+                        )
+                      
+                      : Text('Hello $name,',
                     style: GoogleFonts.poppins(
                       textStyle: const TextStyle(
                         fontWeight: FontWeight.bold,
@@ -781,7 +792,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                                     downloadUrls.add(url);
 
                                     if (i == images.length - 1) {
-                                      storeEntry(downloadUrls, semail, website, desc, fullNumber,email,svic);
+                                      storeEntry(downloadUrls, semail.toLowerCase(), website.toLowerCase(), desc, fullNumber.toLowerCase(),email,svic);
                                     }
                                   }
                                    
@@ -819,6 +830,7 @@ class _DashboardScreenSate extends State<Dashboard> {
             if (snapshot.hasError) {
               return Text(snapshot.error.toString());
             } else {
+             
           return 
           
           Column(
@@ -961,7 +973,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                   Container(
                     
                     margin: const EdgeInsets.only (left: 10),
-                    padding: const EdgeInsets.all(7),
+                    padding: const EdgeInsets.all(6),
                     decoration: const BoxDecoration(
                       color: Color.fromARGB(255, 56, 39, 238),
                       borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -1019,7 +1031,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                  
                 Column(
                   children: [
-                    const SizedBox(height: 20,),
+                    const SizedBox(height: 15,),
                     Text("Please type something...",
                 style: GoogleFonts.poppins(
                       textStyle: const TextStyle(
@@ -1033,7 +1045,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                 
                     
                     : StreamBuilder<QuerySnapshot>(
-                stream: db.collection('reports').where(_currentAccountTypex,whereIn: [searchValue]).snapshots(),
+                stream: db.collection('reports').where(_currentAccountTypex,whereIn: [searchValue.toLowerCase()]).snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
                     return  Center(
@@ -1085,12 +1097,22 @@ class _DashboardScreenSate extends State<Dashboard> {
                     );
                     }else{
                     return 
-
+              
                    ListView(
-                      children: snapshot.data!.docs.map((doc) {
+                      children: snapshot.data!.docs.asMap().map((index, doc) {
                        
-                      
-                        return Container(
+                        return MapEntry(
+                          index,
+                       GestureDetector( 
+                        onTap: () async {
+                         
+                            setState(() {
+                              searchID = snapshot.data!.docs[index].reference.id;
+                            });
+                          
+                           handleStatefulBackdropContent(context,searchID);
+                        },
+                        child: Container(
                           decoration: const BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.all(
@@ -1109,6 +1131,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                               padding: const EdgeInsets.all(10),
                             child:Row(
                               
+                              
                       children: [
                         
                         Image.asset("assets/images/alert.png", height: 60,width: 60,),
@@ -1126,11 +1149,20 @@ class _DashboardScreenSate extends State<Dashboard> {
                               
                             ),
                             Text(
-                             doc.data().toString().contains('stype') ? "Scam type: ${doc.get('stype')}" : '',
+                             searchValue,
                               style: GoogleFonts.poppins(
                                       textStyle: const TextStyle(
                                         fontSize: 14,
                                         color:  Color.fromARGB(255, 18, 12, 82),
+                                      ),
+                              ),
+                            ),
+                             Text(
+                             'Reported: ${snapshot.data!.docs.length}',
+                              style: GoogleFonts.poppins(
+                                      textStyle: const TextStyle(
+                                        fontSize: 14,
+                                        color:  Color.fromARGB(255, 68, 67, 75),
                                       ),
                               ),
                             ),
@@ -1148,8 +1180,10 @@ class _DashboardScreenSate extends State<Dashboard> {
                         
                       ],
                     ),
-                            );
-                      }).toList(),
+                            ),
+                       )
+                        );
+                      }).values.toList(),
                     );
 
 
@@ -1157,63 +1191,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                     }
                   }
                 },
-              //),
-    
-                // ListView.builder(
-                //         shrinkWrap: true,
-                //         itemCount:15,
-                //         scrollDirection: Axis.vertical,
-                //         physics: const ScrollPhysics(),
-                //         itemBuilder: (context,index) {
-                //             return 
-                //             Container(
-                //               padding: const EdgeInsets.only(bottom: 20),
-                //             child:Row(
-                              
-                //       children: [
-                //         Image.asset("assets/images/alert.png", height: 60,width: 60,),
-                //         const SizedBox(width: 10,),
-                //         Column(
-                //          crossAxisAlignment: CrossAxisAlignment.start, 
-                //           children: [
-                //             Text(
-                //               'Jethro Adamu',
-                //               style: GoogleFonts.poppins(
-                //                       textStyle: const TextStyle(
-                //                         fontSize: 16,
-                //                         color: Colors.black,
-                //                       ),
-                //               ),
-                              
-                //             ),
-                //             Text(
-                //               'Email Scam',
-                //               style: GoogleFonts.poppins(
-                //                       textStyle: const TextStyle(
-                //                         fontSize: 14,
-                //                         color: Colors.blueGrey,
-                //                       ),
-                //               ),
-                //             ),
-                //           ],
-                //         ),
-                //         const Spacer(),
-                //         Container(
-                //           height: 15,
-                //           width: 15,
-                //           decoration: const BoxDecoration(
-                //             shape: BoxShape.circle,
-                //             color: Colors.red,
-                //           ),
-                //         ),
-                        
-                //       ],
-                //     ),
-                //             );
-  
-                //         }
-                //       )
-                
+            
             )
           )
             
@@ -1225,7 +1203,8 @@ class _DashboardScreenSate extends State<Dashboard> {
           }
           
       ), 
-      const Text('Account Page', style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold)),  
+      const Text('Account Page', style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold)), 
+      const Text('View Page', style: TextStyle(fontSize: 35, fontWeight: FontWeight.bold)), 
       ];  
       return Scaffold(
       backgroundColor: Colors.white,
@@ -1236,9 +1215,9 @@ class _DashboardScreenSate extends State<Dashboard> {
         currentIndex: _selectedIndex,  
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         selectedItemColor: const Color(0xFF1b1464),
-        unselectedItemColor: Colors.black.withOpacity(.60),
-        selectedFontSize: 14,
-        unselectedFontSize: 14,
+        unselectedItemColor: Colors.black.withOpacity(.70),
+        selectedFontSize: 16,
+        unselectedFontSize: 16,
         onTap: _onItemTapped,
         items:  const [
           BottomNavigationBarItem(
@@ -1257,6 +1236,7 @@ class _DashboardScreenSate extends State<Dashboard> {
             label: 'Account',
             icon: Icon(Icons.person_outline_outlined),
           ),
+          
         ],
       ),
 
@@ -1400,4 +1380,74 @@ class _DashboardScreenSate extends State<Dashboard> {
           ],
         ),
       );
+void handleStatefulBackdropContent(BuildContext context, searchID) async {
+    final result = await Navigator.push(
+      context,
+      BackdropModalRoute<int>(
+        overlayContentBuilder: (context) =>  
+        StreamBuilder(
+          stream: FirebaseFirestore.instance
+              .collection('reports')
+              .doc(searchID) //ID OF DOCUMENT
+              .snapshots(),
+        builder: (context, snapshot) {
+           var document = snapshot.data;
+           List<String> streetsList =  List<String>.from(document!['image']);
+        if (!snapshot.hasData) {
+          return const CircularProgressIndicator();
+        }
+       
+        return Expanded(child:  SingleChildScrollView(
+              child: Column(
+                children: [
+                  FanCarouselImageSlider(
+            imagesLink: streetsList,
+            isAssets: false,
+            autoPlay: false,
+            imageFitMode: BoxFit.cover,
+            slideViewportFraction: 1,
+            imageRadius: 20,
+            initalPageIndex: 0,
+          ),
+
+          const SizedBox(height: 20,),
+          //document!['desc']
+
+          Text(
+            "Scam Narration",
+             style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: Colors.white
+                      ),
+                    ),
+                ),
+                
+
+
+                ],
+              ),
+          )
+        );
+        
+         
+     }
+  ),
+
+      ),
+    );
+
+    setState(() {
+      backdropResult = result.toString();
+    });
+  }
+retriveDetails(searchID){
+       FirebaseFirestore.instance.collection('userNames').where('uid', isEqualTo: searchID)
+        .get()
+        .then((value) {
+          print(value.docs);
+        });
+    }
+
 }

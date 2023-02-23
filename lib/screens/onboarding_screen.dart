@@ -61,10 +61,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               end: Alignment.bottomCenter,
               stops: [0.1, 0.4, 0.7, 0.9],
               colors: [
-                Color(0xFF020024),
-                Color(0xFF020024),
-                Color(0xFF020024),
-                Color(0xFF020024),
+                Color.fromARGB(255, 7, 2, 88),
+                Color.fromARGB(255, 6, 2, 97),
+                Color.fromARGB(255, 9, 3, 122),
+                Color.fromARGB(255, 9, 3, 122),
               ],
             ),
           ),
@@ -88,6 +88,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                 ),
                 Expanded(
+                child: Align(
+                  alignment: Alignment.center,
                   child: PageView(
                     physics: const ClampingScrollPhysics(),
                     controller: _pageController,
@@ -239,6 +241,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ],
                   ),
                 ),
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: _buildPageIndicator(),
@@ -287,7 +290,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ? Container(
               height: 75.0,
               width: double.infinity,
-              color: const Color.fromARGB(255, 17, 12, 75),
+              color: const Color.fromARGB(255, 8, 1, 143),
               child: GestureDetector(
                 // ignore: avoid_print
                 onTap: () async => await _storeOnboardInfo(),

@@ -154,7 +154,17 @@ class _SignupState extends State<Signup> {
             return Container(
         height: MediaQuery.of(context).size.height,
         decoration: const BoxDecoration(
-            color: Color(0xFF020024),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              stops: [0.1, 0.4, 0.7, 0.9],
+              colors: [
+                Color.fromARGB(255, 7, 2, 88),
+                Color.fromARGB(255, 6, 2, 97),
+                Color.fromARGB(255, 9, 3, 122),
+                Color.fromARGB(255, 9, 3, 122),
+              ],
+            ),
         ),
         child: SafeArea(
           
@@ -177,12 +187,13 @@ class _SignupState extends State<Signup> {
                     width: 120,
                   ),
                   ),
+                   const SizedBox(height: 10,),
                   Text(
                     'Scam Shield Sign up',
                     style: GoogleFonts.poppins(
                       textStyle: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 20,
+                        fontSize: 28,
                         color: Colors.white
                       ),
                     ),

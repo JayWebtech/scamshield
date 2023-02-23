@@ -54,8 +54,8 @@ class HomeScreen extends StatelessWidget {
     return MaterialApp(
       title: 'Scam Shield',
       debugShowCheckedModeBanner: false,
-      //home: isviewed != 0 ? const OnboardingScreen() : const Home(),
-      home: const OnboardingScreen()
+      home: isviewed != 0 ? const OnboardingScreen() : const Home(),
+      //home: const OnboardingScreen()
     );  
   }  
 }  
