@@ -83,14 +83,14 @@ class _DashboardScreenSate extends State<Dashboard> {
     retrieveUser() async{
       await FirebaseFirestore.instance.collection('users').where('email', isEqualTo: email).limit(1).get().then((QuerySnapshot querySnapshot){
           if(querySnapshot.docs.isEmpty){
-            
+                
                   QuickAlert.show(
                       context: context,
                       type: QuickAlertType.error,
                       text: 'Session Expired, Login please!',
                       confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
                       onConfirmBtnTap: (){
-
+                         // FirebaseAuth.instance.signOut();
                          Navigator.of(context, rootNavigator: true).pop('dialog');
                               Navigator.push(
                                 context,
@@ -99,6 +99,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                     
                       }
                       );
+                      
           
 
             }else{
@@ -1747,7 +1748,8 @@ class _DashboardScreenSate extends State<Dashboard> {
           'stype': _currentAccountType,
           'website': website,
           'svic': svic,
-          'status': 'NV'
+          'status': 'NV',
+          'created': DateTime.now()
           }).then((value) => 
                   OverlayProgressIndicator.hide().then((value) => 
                             

@@ -5,7 +5,7 @@ import 'package:scamshield/screens/home.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:quickalert/quickalert.dart';
 import 'package:overlay_progress_indicator/overlay_progress_indicator.dart';
-import 'package:scamshield/screens/dashboard.dart';
+import 'package:scamshield/screens/verification.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
@@ -26,6 +26,7 @@ class Signup extends StatefulWidget {
 }
 
 class _SignupState extends State<Signup> {
+  FirebaseAuth auth = FirebaseAuth.instance;
   late StreamSubscription subscription;
   bool isDeviceConnected = false;
   bool isAlertSet = false;
@@ -38,7 +39,7 @@ class _SignupState extends State<Signup> {
   final Future<FirebaseApp> _future = Firebase.initializeApp();
   CollectionReference users = FirebaseFirestore.instance.collection('users');
 
-  void addData(String data,String gsm, String email, String pword) async{
+  Future<User?> addData(String data,String gsm, String email, String pword) async{
     OverlayProgressIndicator.show(
       context: context,
       backgroundColor: Colors.black45,
@@ -65,7 +66,7 @@ class _SignupState extends State<Signup> {
       );
 
               try {
-                 await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                 UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
                   email: email,
                   password: pword,
                 );
@@ -74,29 +75,8 @@ class _SignupState extends State<Signup> {
                   'gsm':gsm,
                   'email':email,
                   'pword': pword
-                  }).then((value) => 
-                  OverlayProgressIndicator.hide().then((value) => 
-                            
-                  QuickAlert.show(
-                      context: context,
-                      type: QuickAlertType.success,
-                      text: 'Registration Successful!',
-                      confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
-                      onConfirmBtnTap: (){
-
-                         Navigator.of(context, rootNavigator: true).pop('dialog');
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const Dashboard()));
-                    
-                           
-                        
-                      }
-                      )
-                  )
-                  
-                  );
+                  });
+                  return userCredential.user;
               }on FirebaseAuthException catch (e) {
                   if (e.code == 'email-already-in-use') {
                       OverlayProgressIndicator.hide();
@@ -352,7 +332,15 @@ class _SignupState extends State<Signup> {
                           if(textcontroller.text.isNotEmpty && gsmcontroller.text.isNotEmpty && emailcontroller.text.isNotEmpty &&pwordcontroller.text.isNotEmpty){
                             final bool emailValid = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(emailcontroller.text);
                             if(emailValid){
-                            addData(textcontroller.text,gsmcontroller.text,emailcontroller.text,pwordcontroller.text);
+                           await addData(textcontroller.text,gsmcontroller.text,emailcontroller.text,pwordcontroller.text);
+
+                           if(auth.currentUser != null){
+                              // ignore: use_build_context_synchronously
+                             OverlayProgressIndicator.hide();
+                              // ignore: use_build_context_synchronously
+                              Navigator.push(context,MaterialPageRoute(builder: (context) => const EmailVerificationScreen()));
+                            }
+
                             }else{
                                QuickAlert.show(
                                 context: context,

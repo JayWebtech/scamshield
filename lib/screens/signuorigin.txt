@@ -1,13 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:scamshield/screens/sign_up.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:scamshield/screens/home.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:quickalert/quickalert.dart';
-import 'package:scamshield/screens/verification.dart';
 import 'package:overlay_progress_indicator/overlay_progress_indicator.dart';
 import 'package:scamshield/screens/dashboard.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'dart:async';
@@ -16,35 +15,30 @@ import 'package:flutter/cupertino.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const Home());
+  runApp(const Signup());
 }
 
-class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+class Signup extends StatefulWidget {
+  const Signup({Key? key}) : super(key: key);
   
   @override
-  State<Home> createState() => _HomeState();
+  State<Signup> createState() => _SignupState();
 }
 
-class _HomeState extends State<Home> {
-  User? user = FirebaseAuth.instance.currentUser;
-  bool check = false;
-  final uid = FirebaseAuth.instance.currentUser?.uid == null;
+class _SignupState extends State<Signup> {
   late StreamSubscription subscription;
   bool isDeviceConnected = false;
   bool isAlertSet = false;
 
-  
+  bool check = false;
   final textcontroller = TextEditingController();
+  final emailcontroller = TextEditingController();
+  final gsmcontroller = TextEditingController();
   final pwordcontroller = TextEditingController();
-   //final Future<FirebaseApp> _future = Firebase.initializeApp();
+  final Future<FirebaseApp> _future = Firebase.initializeApp();
   CollectionReference users = FirebaseFirestore.instance.collection('users');
 
-
-
-  
-  void validateLogin(String data,String pword) async{
-    //bool login = false;
+  void addData(String data,String gsm, String email, String pword) async{
     OverlayProgressIndicator.show(
       context: context,
       backgroundColor: Colors.black45,
@@ -63,50 +57,70 @@ class _HomeState extends State<Home> {
                 height: 10,
               ),
               Text(
-                'Login in',
+                'Signing up',
               ),
             ],
           ),
         ),
       );
 
-      try {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: data,
-          password: pword
-        );
-        OverlayProgressIndicator.hide();
-        // ignore: use_build_context_synchronously
-        Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const Dashboard())
-            );
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'user-not-found') {
-            OverlayProgressIndicator.hide();
-            QuickAlert.show(
-              context: context,
-              type: QuickAlertType.error,
-              text: 'User not found',
-              confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
-              );  
-        } else if (e.code == 'wrong-password') {
-          OverlayProgressIndicator.hide();
-            QuickAlert.show(
-              context: context,
-              type: QuickAlertType.error,
-              text: 'Wrong Password',
-              confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
-              );  
-        }
-      }
+              try {
+                 await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                  email: email,
+                  password: pword,
+                );
+                 users.add({
+                  'name': data,
+                  'gsm':gsm,
+                  'email':email,
+                  'pword': pword
+                  }).then((value) => 
+                  OverlayProgressIndicator.hide().then((value) => 
+                            
+                  QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.success,
+                      text: 'Registration Successful!',
+                      confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
+                      onConfirmBtnTap: (){
 
-          
+                         Navigator.of(context, rootNavigator: true).pop('dialog');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const Dashboard()));
+                    
+                           
+                        
+                      }
+                      )
+                  )
+                  
+                  );
+              }on FirebaseAuthException catch (e) {
+                  if (e.code == 'email-already-in-use') {
+                      OverlayProgressIndicator.hide();
+                      QuickAlert.show(
+                        context: context,
+                        type: QuickAlertType.error,
+                        text: 'This email has already been used.',
+                        confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
+                        );  
+                  } else if (e.code == 'weak-password') {
+                    OverlayProgressIndicator.hide();
+                      QuickAlert.show(
+                        context: context,
+                        type: QuickAlertType.error,
+                        text: 'The password provided is too weak.',
+                        confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
+                        );  
+                  }
+              }
+           
 
   }
-
-    @override
+  
+@override
   void initState() {
     getConnectivity();
     super.initState();
@@ -129,12 +143,19 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
   @override
-   Widget build(BuildContext context) {
+  Widget build(BuildContext context) {
     return Scaffold(
-      body: user!= null && !user!.emailVerified  ? const EmailVerificationScreen() : user==null ? Container(
+      body: FutureBuilder(
+          future: _future,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Text(snapshot.error.toString());
+            } else {
+            return Container(
+        height: MediaQuery.of(context).size.height,
         decoration: const BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topCenter, 
+              begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               stops: [0.1, 0.4, 0.7, 0.9],
               colors: [
@@ -146,21 +167,29 @@ class _HomeState extends State<Home> {
             ),
         ),
         child: SafeArea(
+          
+          child: SingleChildScrollView(
+            
+             scrollDirection: Axis.vertical,
           child: Center(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
+            
+             
               child: Column(
+                
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Image.asset(
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(0, 50, 0, 0),
+                  child: Image.asset(
                     'assets/images/logo.png',
                     height: 120,
                     width: 120,
                   ),
-                 const SizedBox(height: 10,),
+                  ),
+                   const SizedBox(height: 10,),
                   Text(
-                    'Scam Shield Login',
+                    'Scam Shield Sign up',
                     style: GoogleFonts.poppins(
                       textStyle: const TextStyle(
                         fontWeight: FontWeight.bold,
@@ -170,7 +199,7 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                   Text(
-                    'Please login to continue using scam shield',
+                    'Please fill the field to sign up',
                     style: GoogleFonts.poppins(
                       textStyle: const TextStyle(
                           color: Colors.blueGrey,
@@ -183,21 +212,23 @@ class _HomeState extends State<Home> {
                     height: 10,
                   ),
                   Container(
-                    height: 200,
+                    
+                    
                     // _formKey!.currentState!.validate() ? 200 : 600,
-                    // height: isEmailCorrect ? 260 : 182,
+                   
                     width: MediaQuery.of(context).size.width / 1,
                     decoration: BoxDecoration(
                         color: const Color.fromARGB(255, 7, 2, 88),
                         borderRadius: BorderRadius.circular(20)),
+                   
                     child: Column(
                       children: [
-                        Padding(
+                        
+                         Padding(
                           padding: const EdgeInsets.only(
                               left: 20, right: 20, bottom: 20, top: 20),
                           child: TextFormField(
                             controller: textcontroller,
-                            keyboardType: TextInputType.emailAddress,
                             decoration: const InputDecoration(
                               focusedBorder: UnderlineInputBorder(
                                   borderSide: BorderSide.none,
@@ -213,8 +244,62 @@ class _HomeState extends State<Home> {
                               ),
                               filled: true,
                               fillColor: Colors.white,
+                              labelText: "Name",
+                              hintText: 'Jethro Adamu',
+                              labelStyle: TextStyle(color: Color(0xFF1b1464)),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 20, right: 20, bottom: 20),
+                          child: TextFormField(
+                            controller: emailcontroller,
+                             keyboardType: TextInputType.emailAddress,
+                            decoration: const InputDecoration(
+                              focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide.none,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(10))),
+                              enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide.none,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(10))),
+                              prefixIcon: Icon(
+                                Icons.mail,
+                                color: Color(0xFF1b1464),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
                               labelText: "Email",
                               hintText: 'hello@gmail.com',
+                              labelStyle: TextStyle(color: Color(0xFF1b1464)),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 20, right: 20, bottom: 20),
+                          child: TextFormField(
+                            controller: gsmcontroller,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              focusedBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide.none,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(10))),
+                              enabledBorder: UnderlineInputBorder(
+                                  borderSide: BorderSide.none,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(10))),
+                              prefixIcon: Icon(
+                                Icons.phone,
+                                color: Color(0xFF1b1464),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              labelText: "Phone Number",
+                              hintText: '08000000000',
                               labelStyle: TextStyle(color: Color(0xFF1b1464)),
                             ),
                           ),
@@ -249,25 +334,25 @@ class _HomeState extends State<Home> {
                             ),
                           ),
                         ),
-                       
-                      ],
-                    ),
-                  ),
-                 
-                  ElevatedButton(
+                        
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        ElevatedButton(
                       style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10.0)),
                           backgroundColor: const Color.fromARGB(255, 56, 39, 238),
                           padding: EdgeInsets.symmetric(
-                              horizontal: MediaQuery.of(context).size.width / 2.5,
+                              horizontal: MediaQuery.of(context).size.width / 2.6,
                               vertical: 20)
                           ),
-                      onPressed: () {
-                        if(textcontroller.text.isNotEmpty&&pwordcontroller.text.isNotEmpty){
-                            final bool emailValid = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(textcontroller.text);
+                      onPressed: () async{
+                         
+                          if(textcontroller.text.isNotEmpty && gsmcontroller.text.isNotEmpty && emailcontroller.text.isNotEmpty &&pwordcontroller.text.isNotEmpty){
+                            final bool emailValid = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(emailcontroller.text);
                             if(emailValid){
-                            validateLogin(textcontroller.text,pwordcontroller.text);
+                            addData(textcontroller.text,gsmcontroller.text,emailcontroller.text,pwordcontroller.text);
                             }else{
                                QuickAlert.show(
                                 context: context,
@@ -279,7 +364,6 @@ class _HomeState extends State<Home> {
                             }
                         }else{
                          QuickAlert.show(
-                                title: "Alert",
                                 context: context,
                                 type: QuickAlertType.info,
                                 text: 'All fields are required',
@@ -289,43 +373,56 @@ class _HomeState extends State<Home> {
                         }
                       },
                       child: const Text(
-                        'Login',
+                        'Sign up',
                         style: TextStyle(fontSize: 17),
-                      )), //
-                  Row(
+                      )),
+                       Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        'You don\'t have an account?',
+                        'Already have an account?',
                         style: TextStyle(
                           color: Color.fromARGB(255, 255, 255, 255),
                         ),
                       ),
                       TextButton(
                         onPressed: () {
-                          Navigator.push(context,MaterialPageRoute(builder: (context) => const Signup()));
+                          Navigator.push(context,MaterialPageRoute(builder: (context) => const Home()),);
                         },
-                        child: const Text(
-                          'Sign Up',
-                          style: TextStyle(
-                              color: Color.fromARGB(255, 38, 19, 248),
-                              fontWeight: FontWeight.w500),
-                        ),
-                      )
+                        child: Text(
+                          'Login',
+                          style: GoogleFonts.poppins(
+                            textStyle: const TextStyle(
+                                color: Color.fromARGB(255, 38, 19, 248),
+                                fontWeight: FontWeight.w300,
+                                ),
+                          ),
+                      ),
+                      ),
                     ],
                   ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                      ],
+                   
+                  ),
+                  ),
+                 
+
+                  
+                 
                 ],
               ),
             ),
           ),
         ),
-      ) :  const Dashboard()
+        );
+        }
+      }
+    ),
     );
-
-
-    
   }
-
   showDialogBox() => showCupertinoDialog<String>(
         context: context,
         builder: (BuildContext context) => CupertinoAlertDialog(
