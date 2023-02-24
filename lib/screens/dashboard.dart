@@ -673,7 +673,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                               TextFormField(
                                 controller: _website,
                               decoration: const InputDecoration(
-                                  labelText: 'Scammer\'s Website',
+                                  labelText: 'Scammer\'s Website (Use www.example.com)',
                                   labelStyle: TextStyle(color: Color(0xFF1b1464), fontSize: 14),
                                   enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF1b1464))),
                                   border: OutlineInputBorder(),
@@ -916,7 +916,7 @@ class _DashboardScreenSate extends State<Dashboard> {
                         scrollDirection: Axis.vertical,
                   child:  
               Container(
-            height:300,
+            height:340,
           
             width: MediaQuery.of(context).size.width,
             padding: const EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 0),
@@ -947,6 +947,21 @@ class _DashboardScreenSate extends State<Dashboard> {
                       textStyle: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 28,
+                        color: Colors.white,
+                        
+                      ),
+                    ),
+                  ),
+                  ),
+                   const SizedBox(
+                    height: 10,
+                  ),
+                  Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('When verifying number, ensure you add the country code (e.g +2348084348312).',
+                    style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontSize: 13,
                         color: Colors.white,
                         
                       ),

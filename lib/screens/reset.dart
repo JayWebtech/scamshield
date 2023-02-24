@@ -1,12 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:scamshield/screens/home.dart';
 import 'package:scamshield/screens/sign_up.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:quickalert/quickalert.dart';
 import 'package:scamshield/screens/verification.dart';
-import 'package:scamshield/screens/reset.dart';
 import 'package:overlay_progress_indicator/overlay_progress_indicator.dart';
 import 'package:scamshield/screens/dashboard.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -17,35 +17,26 @@ import 'package:flutter/cupertino.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const Home());
+  runApp(const Reset());
 }
 
-class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+class Reset extends StatefulWidget {
+  const Reset({Key? key}) : super(key: key);
   
   @override
-  State<Home> createState() => _HomeState();
+  State<Reset> createState() => _ResetState();
 }
 
-class _HomeState extends State<Home> {
-  User? user = FirebaseAuth.instance.currentUser;
-  bool check = false;
-  final uid = FirebaseAuth.instance.currentUser?.uid == null;
+class _ResetState extends State<Reset> {
+  
+  
+  final textcontroller = TextEditingController();
+   //final Future<FirebaseApp> _future = Firebase.initializeApp();
   late StreamSubscription subscription;
   bool isDeviceConnected = false;
   bool isAlertSet = false;
 
-  
-  final textcontroller = TextEditingController();
-  final pwordcontroller = TextEditingController();
-   //final Future<FirebaseApp> _future = Firebase.initializeApp();
-  CollectionReference users = FirebaseFirestore.instance.collection('users');
-
-
-
-  
-  void validateLogin(String data,String pword) async{
-    //bool login = false;
+  reset() async {
     OverlayProgressIndicator.show(
       context: context,
       backgroundColor: Colors.black45,
@@ -64,48 +55,69 @@ class _HomeState extends State<Home> {
                 height: 10,
               ),
               Text(
-                'Login in',
+                'Please wait...',
               ),
             ],
           ),
         ),
       );
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: textcontroller.text.trim());
+            QuickAlert.show(
+              context: context,
+              type: QuickAlertType.success,
+              text: 'Password Reset link sent. Check your email',
+              confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
+              onConfirmBtnTap: (){
+                      OverlayProgressIndicator.hide();
+                         Navigator.of(context, rootNavigator: true).pop('dialog');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const Home()));
+                    
+                           
+                        
+                      }
+              ); 
 
-      try {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: data,
-          password: pword
-        );
+      return true;
+    } on FirebaseAuthException catch (e) {    
+      if (e.code.toString() == 'invalid-email') {
         OverlayProgressIndicator.hide();
-        // ignore: use_build_context_synchronously
-        Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const Dashboard())
-            );
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'user-not-found') {
-            OverlayProgressIndicator.hide();
             QuickAlert.show(
               context: context,
               type: QuickAlertType.error,
-              text: 'Invalid Details',
+              text: 'Invalid Email',
               confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
               );  
-        } else if (e.code == 'wrong-password') {
-          OverlayProgressIndicator.hide();
-            QuickAlert.show(
-              context: context,
-              type: QuickAlertType.error,
-              text: 'Invalid details',
-              confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
-              );  
-        }
       }
 
-          
+      if (e.code.toString() == 'missing-email') {
+        OverlayProgressIndicator.hide();
+            QuickAlert.show(
+              context: context,
+              type: QuickAlertType.error,
+              text: 'Missing email',
+              confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
+              );  
+      }
 
+      if (e.code.toString() == 'user-not-found') {
+        OverlayProgressIndicator.hide();
+            QuickAlert.show(
+              context: context,
+              type: QuickAlertType.error,
+              text: 'User not found',
+              confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
+              );  
+      }
+    } catch (e) {
+      return false;
+    }
   }
+
+
 
     @override
   void initState() {
@@ -132,7 +144,7 @@ class _HomeState extends State<Home> {
   @override
    Widget build(BuildContext context) {
     return Scaffold(
-      body: user!= null && !user!.emailVerified  ? const EmailVerificationScreen() : user==null ? Container(
+      body: Container(
         decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter, 
@@ -161,7 +173,7 @@ class _HomeState extends State<Home> {
                   ),
                  const SizedBox(height: 10,),
                   Text(
-                    'Scam Shield Login',
+                    'Reset Password',
                     style: GoogleFonts.poppins(
                       textStyle: const TextStyle(
                         fontWeight: FontWeight.bold,
@@ -171,20 +183,22 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                   Text(
-                    'Please login to continue using scam shield',
+                    'Enter the email used during sign up',
                     style: GoogleFonts.poppins(
                       textStyle: const TextStyle(
-                          color: Colors.blueGrey,
+                          color: Color.fromARGB(255, 229, 227, 255),
                           fontWeight: FontWeight.w300,
                           fontSize: 15),
                     ),
                   ),
 
+                 
+
                   const SizedBox(
                     height: 10,
                   ),
                   Container(
-                    height: 200,
+                    height: 110,
                     // _formKey!.currentState!.validate() ? 200 : 600,
                     // height: isEmailCorrect ? 260 : 182,
                     width: MediaQuery.of(context).size.width / 1,
@@ -220,37 +234,7 @@ class _HomeState extends State<Home> {
                             ),
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 20, right: 20),
-                          child: Form(
-                            child: TextFormField(
-                              controller: pwordcontroller,
-                              obscuringCharacter: '*',
-                              obscureText: true,
-                              decoration: const InputDecoration(
-                                focusedBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide.none,
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(10))),
-                                enabledBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide.none,
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(10))),
-                                prefixIcon: Icon(
-                                  Icons.lock,
-                                  color: Color(0xFF1b1464),
-                                ),
-                                filled: true,
-                                fillColor: Colors.white,
-                                labelText: "Password",
-                                hintText: '*********',
-                                labelStyle: TextStyle(color: Color(0xFF1b1464)),
-                              ),
-                              
-                            ),
-                          ),
-                        ),
-                       
+                        
                       ],
                     ),
                   ),
@@ -261,14 +245,14 @@ class _HomeState extends State<Home> {
                               borderRadius: BorderRadius.circular(10.0)),
                           backgroundColor: const Color.fromARGB(255, 56, 39, 238),
                           padding: EdgeInsets.symmetric(
-                              horizontal: MediaQuery.of(context).size.width / 2.5,
+                              horizontal: MediaQuery.of(context).size.width / 2.8,
                               vertical: 20)
                           ),
                       onPressed: () {
-                        if(textcontroller.text.isNotEmpty&&pwordcontroller.text.isNotEmpty){
+                        if(textcontroller.text.isNotEmpty){
                             final bool emailValid = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(textcontroller.text);
                             if(emailValid){
-                            validateLogin(textcontroller.text,pwordcontroller.text);
+                              reset();
                             }else{
                                QuickAlert.show(
                                 context: context,
@@ -290,61 +274,34 @@ class _HomeState extends State<Home> {
                         }
                       },
                       child: const Text(
-                        'Login',
+                        'Send Link',
                         style: TextStyle(fontSize: 17),
                       )), //
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        'You don\'t have an account?',
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 255, 255, 255),
-                        ),
-                      ),
+                      
                       TextButton(
                         onPressed: () {
-                          Navigator.push(context,MaterialPageRoute(builder: (context) => const Signup()));
+                          Navigator.push(context,MaterialPageRoute(builder: (context) => const Home()));
                         },
                         child: const Text(
-                          'Sign Up',
+                          'Go Back',
                           style: TextStyle(
-                              color: Color.fromARGB(255, 60, 43, 253),
+                              color: Color.fromARGB(255, 255, 255, 255),
                               fontWeight: FontWeight.w500),
                         ),
                       ),
                       
                     ],
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Forgot password?',
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 255, 255, 255),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(context,MaterialPageRoute(builder: (context) => const Reset()));
-                        },
-                        child: const Text(
-                          'Reset',
-                          style: TextStyle(
-                              color: Color.fromARGB(255, 60, 43, 253),
-                              fontWeight: FontWeight.w500),
-                        ),
-                      ),
-                      
-                    ],
-                  ),
+                  
                 ],
               ),
             ),
           ),
         ),
-      ) :  const Dashboard()
+      ) 
     );
 
 
