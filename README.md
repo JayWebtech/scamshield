@@ -1,35 +1,35 @@
-##Running the App
-###To run the app, follow these steps:
+## Running the App
+### To run the app, follow these steps:
 
-####Clone the repository to your local machine
+#### Clone the repository to your local machine
 
 ```git
 git clone https://github.com/your-username/your-repository.git
 ```
-####Open the project in your preferred code editor
+#### Open the project in your preferred code editor
 
 ```git
 cd your-repository
 ```
-####Install the required packages and dependencies using the command:
+#### Install the required packages and dependencies using the command:
 
 ```dart
 flutter pub get
 ```
 
-####Run the app on an emulator or connected device using the command:
+#### Run the app on an emulator or connected device using the command:
 
 ```dart
 flutter run
 ```
 
-####If you encounter any issues running the app, please check the troubleshooting section below.
+#### If you encounter any issues running the app, please check the troubleshooting section below.
 
-#####Troubleshooting
+##### Troubleshooting
 
 If you encounter any issues running the app, try the following steps:
 
--Ensure that you have installed Flutter and set up your development environment correctly. You can follow the instructions on the Flutter website to install Flutter.
+- Ensure that you have installed Flutter and set up your development environment correctly. You can follow the instructions on the Flutter website to install Flutter.
 
 - Make sure that you have the required packages and dependencies installed by running the command flutter pub get.
 
