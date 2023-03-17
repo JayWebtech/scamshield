@@ -8,20 +8,15 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 int ? isviewed;
 void main() async {
- 
-
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences prefs = await SharedPreferences.getInstance();
   isviewed = prefs.getInt('onBoard');
-   await Firebase.initializeApp(
-  options: DefaultFirebaseOptions.currentPlatform,
-);
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
   
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-  
   @override  
   Widget build(BuildContext context) {  
     return const MaterialApp(  
@@ -43,7 +38,7 @@ class SplashScreenPage extends StatelessWidget {
       image: Image.asset("assets/images/logo.png",scale: 2,),  
       photoSize: 150.0,  
       loaderColor: Colors.white,  
-    );   //1b1464 statusBarColor: Color.fromARGB(255, 27,20,100), 
+    );  
   }  
 }  
 class HomeScreen extends StatelessWidget {
@@ -55,7 +50,6 @@ class HomeScreen extends StatelessWidget {
       title: 'Scam Shield',
       debugShowCheckedModeBanner: false,
       home: isviewed != 0 ? const OnboardingScreen() : const Home(),
-      //home: const OnboardingScreen()
     );  
   }  
 }  

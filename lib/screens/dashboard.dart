@@ -24,62 +24,69 @@ void main() {
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
+
   @override
   // ignore: library_private_types_in_public_api
   _DashboardScreenSate createState() => _DashboardScreenSate();
 }
 
 class _DashboardScreenSate extends State<Dashboard> {
-  var searchID;
-  late StreamSubscription subscription;
-  bool isDeviceConnected = false;
-  bool isAlertSet = false;
+  final List<String> accountType = ["Email", "Call", "SMS", "Whatsapp", "Website"];
+      final List<String> accountTypev = ["Yes", "No, but I'm suspecting"];
+  //final List<String> accountTypeval= ["smail","gsm","gsm","gsm","website"];
+   final List<String> accountTypeval = ["Email", "Call", "SMS", "Whatsapp", "Website"];
 
-  var fullNumber ="empty";
-  var pNumber ="empty";
-  var stat = 0;
-  String imageUrl = '';
-  TextEditingController _stype = TextEditingController();
-  TextEditingController _email = TextEditingController();
-  TextEditingController _gsm = TextEditingController();
-  TextEditingController _desc = TextEditingController();
-  TextEditingController _website = TextEditingController();
-  TextEditingController _search = TextEditingController();
+    final auth = FirebaseAuth.instance.currentUser;
   String? backdropResult = '';
-  var searchValue;
-  String report = "Reported by";
-  int _selectedIndex = 0;  
+  bool btnStatus = true;
+  bool btnStatusx = true;
+    final db = FirebaseFirestore.instance;
+ List<String> downloadUrls = [];
+    late final String email = auth!.email.toString();
+  var fullNumber ="empty";
+  String imageUrl = '';
   // Initial Selected Value
    List<File> images = [];
 
-  final List<String> accountType = ["Email", "Call", "SMS", "Whatsapp", "Website"];
-  //final List<String> accountTypeval= ["smail","gsm","gsm","gsm","website"];
-   final List<String> accountTypeval = ["Email", "Call", "SMS", "Whatsapp", "Website"];
-      final List<String> accountTypev = ["Yes", "No, but I'm suspecting"];
-  bool btnStatus = true;
-  bool btnStatusx = true;
-  late String _currentAccountType ="Hello";
-
-   late String _currentAccountTypex ="";
-   late String svic ="";
-
-  void _onItemTapped(int index) {  
-    setState(() {  
-      _selectedIndex = index;  
-    });  
-  }
-    final auth = FirebaseAuth.instance.currentUser;
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    late final String email = auth!.email.toString();
-    CollectionReference users = FirebaseFirestore.instance.collection('users');
-    final db = FirebaseFirestore.instance;
-
-    
-    
-
+  bool isAlertSet = false;
+  bool isDeviceConnected = false;
     String name = '';
+  var pNumber ="empty";
     String pemail = '';
     String pgsm = '';
+  String report = "Reported by";
+  var searchID;
+  var searchValue;
+  var stat = 0;
+  late StreamSubscription subscription;
+   late String svic ="";
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    CollectionReference users = FirebaseFirestore.instance.collection('users');
+
+  late String _currentAccountType ="Hello";
+   late String _currentAccountTypex ="";
+  TextEditingController _desc = TextEditingController();
+  TextEditingController _email = TextEditingController();
+  TextEditingController _gsm = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
+  TextEditingController _search = TextEditingController();
+  int _selectedIndex = 0;  
+  TextEditingController _stype = TextEditingController();
+  TextEditingController _website = TextEditingController();
+
+       @override
+  void dispose() {
+    subscription.cancel();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    getConnectivity();
+    super.initState();
+    ///InternetPopup().initialize(context: context);
+  }
+
     retrieveUser() async{
       await FirebaseFirestore.instance.collection('users').where('email', isEqualTo: email).limit(1).get().then((QuerySnapshot querySnapshot){
           if(querySnapshot.docs.isEmpty){
@@ -119,14 +126,6 @@ class _DashboardScreenSate extends State<Dashboard> {
       });
     }
 
- 
-  @override
-  void initState() {
-    getConnectivity();
-    super.initState();
-    ///InternetPopup().initialize(context: context);
-  }
-
    getConnectivity() =>
       subscription = Connectivity().onConnectivityChanged.listen(
         (ConnectivityResult result) async {
@@ -138,12 +137,286 @@ class _DashboardScreenSate extends State<Dashboard> {
         },
       );
 
-       @override
-  void dispose() {
-    subscription.cancel();
-    super.dispose();
+  getMultipImage() async {
+    final List<XFile>? pickedImages = await _picker.pickMultiImage();
+
+    if (pickedImages != null) {
+      pickedImages.forEach((e) {
+        images.add(File(e.path));
+      });
+
+      setState(() {});
+    }
   }
-  
+
+  Future<String> uploadFile(File file) async {
+    OverlayProgressIndicator.show(
+    context: context,
+    backgroundColor: Colors.black45,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        padding: const EdgeInsets.all(30.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            CircularProgressIndicator(),
+            SizedBox(
+              height: 10,
+            ),
+            Text("Uploading Image...."),
+          ],
+        ),
+      ),
+    );
+    final metaData = SettableMetadata(contentType: 'image/jpeg');
+    final storageRef = FirebaseStorage.instance.ref();
+    Reference ref = storageRef
+        .child('images/${DateTime.now().microsecondsSinceEpoch}');
+    final uploadTask = ref.putFile(file, metaData);
+
+    final taskSnapshot = await uploadTask.whenComplete(() => 
+    OverlayProgressIndicator.hide()
+      );
+    String url = await taskSnapshot.ref.getDownloadURL();
+    return url;
+  }
+
+  storeEntry(List<String> imageUrls, semail, website, desc, fullNumber,email,svic) async {
+    OverlayProgressIndicator.show(
+    context: context,
+    backgroundColor: Colors.black45,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        padding: const EdgeInsets.all(30.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            CircularProgressIndicator(),
+            SizedBox(
+              height: 10,
+            ),
+            Text("Submitting..."),
+          ],
+        ),
+      ),
+    );
+    final CollectionReference reference = FirebaseFirestore.instance.collection('reports');
+        await reference.add({
+          'desc': desc,
+          'email': email,
+          'gsm': fullNumber,
+          'image': imageUrls,
+          'smail': semail,
+          'sname': name,
+          'stype': _currentAccountType,
+          'website': website,
+          'svic': svic,
+          'status': 'NV',
+          'created': DateTime.now()
+          }).then((value) => 
+                  OverlayProgressIndicator.hide().then((value) => 
+                            
+                  QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.success,
+                      text: 'Report send successfully, Once verified, it will be mark as scam',
+                      confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
+                      onConfirmBtnTap: (){
+
+                         Navigator.of(context, rootNavigator: true).pop('dialog');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const Dashboard()));
+                    
+                           
+                        
+                      }
+                      )
+                  )
+                  
+                  );
+  }
+
+  showDialogBox() => showCupertinoDialog<String>(
+        context: context,
+        builder: (BuildContext context) => CupertinoAlertDialog(
+          title: const Text('No Connection'),
+          content: const Text('Please check your internet connectivity'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context, 'Cancel');
+                setState(() => isAlertSet = false);
+                isDeviceConnected =
+                    await InternetConnectionChecker().hasConnection;
+                if (!isDeviceConnected && isAlertSet == false) {
+                  showDialogBox();
+                  setState(() => isAlertSet = true);
+                }
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+
+void handleStatefulBackdropContent(BuildContext context, searchID) async {
+    final result = await Navigator.push(
+      context,
+      BackdropModalRoute<int>(
+        overlayContentBuilder: (context) =>  
+        StreamBuilder(
+          stream: FirebaseFirestore.instance
+              .collection('reports')
+              .doc(searchID) //ID OF DOCUMENT
+              .snapshots(),
+        builder: (context, snapshot) {
+           
+        if (!snapshot.hasData) {
+          return Center(
+            child: Column(
+              children: const [
+                  Text('Fetching...'),
+                  CircularProgressIndicator()
+              ]
+            ),
+          );
+        }else{
+          var document = snapshot.data;
+           List<String> streetsList =  List<String>.from(document!['image']);
+        return 
+           Container(
+            height: MediaQuery.of(context).size.height,
+            padding: const EdgeInsets.only(left: 15, right: 15, bottom: 80, top: 10),
+            
+               child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  FanCarouselImageSlider(
+            imagesLink: streetsList,
+            isAssets: false,
+            autoPlay: false,
+            imageFitMode: BoxFit.cover,
+            slideViewportFraction: 1,
+            imageRadius: 20,
+            initalPageIndex: 0,
+          ),
+
+          const SizedBox(height: 20,),
+          //document!['desc']
+      Align(
+                      alignment: Alignment.centerLeft,
+          child: Text(
+            "Scam Narration",
+             style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.black
+                      ),
+                    ),
+                ),
+      ),
+      Align(
+                      alignment: Alignment.centerLeft,
+                child: Text(
+            document['desc'].isEmpty ? "Nil" : document['desc'],
+             style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black
+                      ),
+                    ),
+                ),
+      ),
+      const SizedBox(height: 10,),
+      Align(
+                      alignment: Alignment.centerLeft,
+          child: Text(
+            "Victim",
+             style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.black
+                      ),
+                    ),
+                ),
+      ),
+      Align(
+            alignment: Alignment.centerLeft,
+                child: Text(
+            document['svic'].isEmpty ? "Nil" : document['svic'],
+             style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black
+                      ),
+                    ),
+                ),
+      ),
+       const SizedBox(height: 10,),
+Align(
+                      alignment: Alignment.centerLeft,
+          child: Text(
+            "Scam type:",
+             style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.black
+                      ),
+                    ),
+                ),
+      ),
+      Align(
+                      alignment: Alignment.centerLeft,
+                child: Text(
+            document['stype'].isEmpty ? "Nil" : document['stype'],
+             style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black
+                      ),
+                    ),
+                ),
+      ),
+
+
+                ],
+              ),
+               ),
+          
+          );
+       
+        
+        }
+     }
+  ),
+
+      ),
+    );
+
+    setState(() {
+      backdropResult = result.toString();
+    });
+  }
+
+  void _onItemTapped(int index) {  
+    setState(() {  
+      _selectedIndex = index;  
+    });  
+  }
+
   @override
   Widget build(BuildContext context) {
     late List<Widget> widgetOptions = <Widget>[  
@@ -1674,284 +1947,4 @@ class _DashboardScreenSate extends State<Dashboard> {
          
     );
   }
-
- 
-
- List<String> downloadUrls = [];
-
-  final ImagePicker _picker = ImagePicker();
-
-  getMultipImage() async {
-    final List<XFile>? pickedImages = await _picker.pickMultiImage();
-
-    if (pickedImages != null) {
-      pickedImages.forEach((e) {
-        images.add(File(e.path));
-      });
-
-      setState(() {});
-    }
-  }
-
-  Future<String> uploadFile(File file) async {
-    OverlayProgressIndicator.show(
-    context: context,
-    backgroundColor: Colors.black45,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20.0),
-        ),
-        padding: const EdgeInsets.all(30.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            CircularProgressIndicator(),
-            SizedBox(
-              height: 10,
-            ),
-            Text("Uploading Image...."),
-          ],
-        ),
-      ),
-    );
-    final metaData = SettableMetadata(contentType: 'image/jpeg');
-    final storageRef = FirebaseStorage.instance.ref();
-    Reference ref = storageRef
-        .child('images/${DateTime.now().microsecondsSinceEpoch}');
-    final uploadTask = ref.putFile(file, metaData);
-
-    final taskSnapshot = await uploadTask.whenComplete(() => 
-    OverlayProgressIndicator.hide()
-      );
-    String url = await taskSnapshot.ref.getDownloadURL();
-    return url;
-  }
-
-  storeEntry(List<String> imageUrls, semail, website, desc, fullNumber,email,svic) async {
-    OverlayProgressIndicator.show(
-    context: context,
-    backgroundColor: Colors.black45,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20.0),
-        ),
-        padding: const EdgeInsets.all(30.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            CircularProgressIndicator(),
-            SizedBox(
-              height: 10,
-            ),
-            Text("Submitting..."),
-          ],
-        ),
-      ),
-    );
-    final CollectionReference reference = FirebaseFirestore.instance.collection('reports');
-        await reference.add({
-          'desc': desc,
-          'email': email,
-          'gsm': fullNumber,
-          'image': imageUrls,
-          'smail': semail,
-          'sname': name,
-          'stype': _currentAccountType,
-          'website': website,
-          'svic': svic,
-          'status': 'NV',
-          'created': DateTime.now()
-          }).then((value) => 
-                  OverlayProgressIndicator.hide().then((value) => 
-                            
-                  QuickAlert.show(
-                      context: context,
-                      type: QuickAlertType.success,
-                      text: 'Report send successfully, Once verified, it will be mark as scam',
-                      confirmBtnColor:  const Color.fromARGB(255, 56, 39, 238),
-                      onConfirmBtnTap: (){
-
-                         Navigator.of(context, rootNavigator: true).pop('dialog');
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const Dashboard()));
-                    
-                           
-                        
-                      }
-                      )
-                  )
-                  
-                  );
-  }
-  showDialogBox() => showCupertinoDialog<String>(
-        context: context,
-        builder: (BuildContext context) => CupertinoAlertDialog(
-          title: const Text('No Connection'),
-          content: const Text('Please check your internet connectivity'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(context, 'Cancel');
-                setState(() => isAlertSet = false);
-                isDeviceConnected =
-                    await InternetConnectionChecker().hasConnection;
-                if (!isDeviceConnected && isAlertSet == false) {
-                  showDialogBox();
-                  setState(() => isAlertSet = true);
-                }
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-void handleStatefulBackdropContent(BuildContext context, searchID) async {
-    final result = await Navigator.push(
-      context,
-      BackdropModalRoute<int>(
-        overlayContentBuilder: (context) =>  
-        StreamBuilder(
-          stream: FirebaseFirestore.instance
-              .collection('reports')
-              .doc(searchID) //ID OF DOCUMENT
-              .snapshots(),
-        builder: (context, snapshot) {
-           
-        if (!snapshot.hasData) {
-          return Center(
-            child: Column(
-              children: const [
-                  Text('Fetching...'),
-                  CircularProgressIndicator()
-              ]
-            ),
-          );
-        }else{
-          var document = snapshot.data;
-           List<String> streetsList =  List<String>.from(document!['image']);
-        return 
-           Container(
-            height: MediaQuery.of(context).size.height,
-            padding: const EdgeInsets.only(left: 15, right: 15, bottom: 80, top: 10),
-            
-               child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  FanCarouselImageSlider(
-            imagesLink: streetsList,
-            isAssets: false,
-            autoPlay: false,
-            imageFitMode: BoxFit.cover,
-            slideViewportFraction: 1,
-            imageRadius: 20,
-            initalPageIndex: 0,
-          ),
-
-          const SizedBox(height: 20,),
-          //document!['desc']
-      Align(
-                      alignment: Alignment.centerLeft,
-          child: Text(
-            "Scam Narration",
-             style: GoogleFonts.poppins(
-                      textStyle: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.black
-                      ),
-                    ),
-                ),
-      ),
-      Align(
-                      alignment: Alignment.centerLeft,
-                child: Text(
-            document['desc'].isEmpty ? "Nil" : document['desc'],
-             style: GoogleFonts.poppins(
-                      textStyle: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.black
-                      ),
-                    ),
-                ),
-      ),
-      const SizedBox(height: 10,),
-      Align(
-                      alignment: Alignment.centerLeft,
-          child: Text(
-            "Victim",
-             style: GoogleFonts.poppins(
-                      textStyle: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.black
-                      ),
-                    ),
-                ),
-      ),
-      Align(
-                      alignment: Alignment.centerLeft,
-                child: Text(
-            document['svic'].isEmpty ? "Nil" : document['svic'],
-             style: GoogleFonts.poppins(
-                      textStyle: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.black
-                      ),
-                    ),
-                ),
-      ),
-       const SizedBox(height: 10,),
-Align(
-                      alignment: Alignment.centerLeft,
-          child: Text(
-            "Scam type:",
-             style: GoogleFonts.poppins(
-                      textStyle: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.black
-                      ),
-                    ),
-                ),
-      ),
-      Align(
-                      alignment: Alignment.centerLeft,
-                child: Text(
-            document['stype'].isEmpty ? "Nil" : document['stype'],
-             style: GoogleFonts.poppins(
-                      textStyle: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.black
-                      ),
-                    ),
-                ),
-      ),
-
-
-                ],
-              ),
-               ),
-          
-          );
-       
-        
-        }
-     }
-  ),
-
-      ),
-    );
-
-    setState(() {
-      backdropResult = result.toString();
-    });
-  }
-
-
 }
