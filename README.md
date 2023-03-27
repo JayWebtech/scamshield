@@ -4,7 +4,7 @@
 #### Clone the repository to your local machine
 
 ```git
-git clone https://github.com/your-username/your-repository.git
+git clone https://github.com/JayWebtech/scamshield.git
 ```
 #### Open the project in your preferred code editor
 
